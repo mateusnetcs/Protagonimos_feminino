@@ -23,6 +23,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN apt-get update && apt-get install -y --no-install-recommends default-mysql-client \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -32,10 +35,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
 
+RUN chmod +x /app/scripts/init-db.sh
+
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "echo '=== Aguardando MySQL ===' && node scripts/wait-for-mysql.js && echo '=== Inicializando banco ===' && node scripts/setup-database.js && echo '=== Criando admin ===' && node scripts/seed-admin.js && echo '=== Iniciando app ===' && exec node server.js"]
+CMD ["sh", "-c", "echo '=== Init ===' && /app/scripts/init-db.sh && echo '=== Iniciando app ===' && exec node server.js"]
