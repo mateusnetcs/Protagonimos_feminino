@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Header Section -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-6 pb-2">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">storefront</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight">Inovação Imperatriz</h1>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-200/50 dark:bg-slate-800/50">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+<div class="flex gap-2">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border-none rounded-2xl focus:ring-2 focus:ring-primary text-sm" placeholder="Pesquisar produtos..." type="text"/>
+</div>
+<button class="aspect-square w-12 flex items-center justify-center bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+<!-- Categories horizontal scroll -->
+<div class="flex gap-2 overflow-x-auto py-4 no-scrollbar">
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold">Tudo</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold">Eletrônicos</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold">Móveis</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold">Decoração</button>
+<button class="whitespace-nowrap px-4 py-1.5 rounded-full bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-xs font-semibold">Ofertas</button>
+</div>
+</header>
+<!-- Product Grid -->
+<main class="flex-1 px-4 pb-24">
+<div class="grid grid-cols-2 gap-4">
+<!-- Product Card 1 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Modern high-end smartphone with glass back" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAq1YoXN8Hud8gE4em_jOFXVBcUAx73iVM80xwZ9VuxtnLPA8N9yyl2TUr_In-1wbkCNd8CVtSew9Mh9baQ_JNUzfgozvHv7fCMpCzjPdUHS_MNK5KTsBZSna3sI5fjEoDoFhSaaKtov9wYLMM4hSHg1subqtzTv9foLOno-Kl1wgCxwfRijEC8_02eEHfz76gPiw6qbmgZThfmnQSE4puRPWfWrJtzikeRvWugthZJypXB78qapSW7X8NA6641ou4H-MwlqXj85Rjb')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Smartphone X1 Pro</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 4.299,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Estoque: 15 un
+                </div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Wireless noise cancelling headphones black color" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCs2GltZgQvfk22mN_GeNVa8P52NupYZ-orbLGefU7l8eJKKrZQ3wZZTxIPt19sFxxCs1XMhLtzsJkwRs850P39YY4dLjiieH0jBMQ_rFv9iIHyPtGkbtuv_VXimjPzCc4ogZZ5ECLIl7w4ADBYaxoFAiy19kMYNCb3sVfLpvbk4izOyRyz9foTMuj2BPYldzWv_Vy8XWQ5xcJcxspVaxjooI-d1CvNxy-YiQk_GpytSHEdTWum_vKTckzkDNdBj3ABnV3b0a5RkuDy')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Fone Bluetooth Z-Max</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 899,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Estoque: 42 un
+                </div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Ergonomic black gaming chair with leather" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCTj_YT-til7PQBUzq2-IHelJdwvEa_5kakWR6IHhIWRR4IiDSv9YKhg7XdfEqcVKhRpq8tgnffyfay2oSSLoz_Ubp2-n0h-4EJ8g8A0iUwHN696PQZ71jOeF4GQ_PR9S4m0no06kYN8Xwa7AKAiwFRO3nbG1cp3I9mUA5NSvbwYbx2tu4GbGqTWBc1N0fYzKqoiNyDbYFiOtrgHPlni_0bxgXOOz8FIdhTXHPruLn8h6MZ0LU5srKYEPknw69So-mJMAVP0znOThz3')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Cadeira Gamer Elite</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 1.850,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
+                    Estoque: 04 un
+                </div>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Ultra-wide computer monitor on desk" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBvNn_CFMj-Ob1hleSUS4RJo0gCIC4jOwlpIKbIIg3IvPXz2yWptWY1nBd0t6cQ-sz8C_2w1093wO2KbVqjSW-yUkVOKnv8fOBUd1Ui1AjLIyhGAG7NWt_V9m6mE9WXI3_ergd2h_tkxxPuKeT6pQJ_2s3f1c7F_ELn7aV9-zr3OYA_LUiyvhOofa6vmtxd-cFro6EPUEDqyM7Dkpm4vB8aQEhjo9GA9UsLOWZmhBTNgQcZqwiRM1gY7Mh9KKDfhJ_vDctNLortMbFn')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Monitor 4K Ultra Wide</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 3.100,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    Estoque: 01 un
+                </div>
+</div>
+<!-- Product Card 5 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Luxury wrist watch with leather strap" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBVr1e1k4qVziA-yj4pofzR8twb9PIFuJFSvIEYoi9J165BdMPb3k_SSrhReZyl4sjL2lBzo2wIElW4xZqpT55lXMT278ORWmFbSIvAvLD7uPVX4mTzOTz5A7nhW0zVAuouZ6vioQVD-XD-WyZXrZomp3suBR180qwc238CAG8XclqghV5kpk8ofa51ZMrAZd8hmh2xjSMLcrg0_ZEMee5GUMgL2AV9s3KQKDdPW1lvwGsMWTOQWe4js7kxVUTwT8_681AXK59G7Rvj')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Smartwatch Series V</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 1.250,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Estoque: 28 un
+                </div>
+</div>
+<!-- Product Card 6 -->
+<div class="bg-white dark:bg-slate-900 rounded-3xl p-3 shadow-sm border border-slate-100 dark:border-slate-800">
+<div class="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 mb-3 bg-cover bg-center" data-alt="Modern minimalist table lamp" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAtmWsw1lEyFqv20CFndk68-E42raMpggXtIb8EnjB5EHL0xkj8yBJMke_EVw3HNnPXiIOXK8Zt451bV-0JpTwEig2XTbsvxLWME_houUJUu0QhVWQwBBBxpsiM_3h7xvGbvWDpHS_7QE_9kdE9C2WSrOCK720Rv00kSUxaRNbzlZvdOHivjZnp3sJym4Gubkl9WtvFzls6qFrHqsDkNsWGBSN__aWxncZqGGEXTLCjBQo8bJXOzqABvozpSuBXe1mWlXG5zKTb4Dl5')"></div>
+<h3 class="font-bold text-sm line-clamp-1 mb-1">Luminária de Mesa LED</h3>
+<p class="text-primary font-bold text-base mb-2">R$ 189,00</p>
+<div class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Estoque: 56 un
+                </div>
+</div>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center z-20">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 pt-3 pb-8 flex justify-between items-center z-10">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-bold">Vendas</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary active-nav" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-[10px] font-bold">Produtos</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="text-[10px] font-bold">Relatórios</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Perfil</span>
+</a>
+</nav>
+</body></html>

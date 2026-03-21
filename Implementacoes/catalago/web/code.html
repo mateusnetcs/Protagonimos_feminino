@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10 px-6 lg:px-20 py-4">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-white">
+<span class="material-symbols-outlined block">inventory_2</span>
+</div>
+<h1 class="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">Inovação <span class="text-primary">Imperatriz</span></h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Produtos</a>
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Vendas</a>
+<a class="text-sm font-semibold text-slate-600 hover:text-primary transition-colors" href="#">Relatórios</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors relative">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="p-2 hover:bg-primary/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/20 border-2 border-primary/30 overflow-hidden">
+<img alt="Avatar" data-alt="User profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_2ntrSYi7MUlglLGyWhbfQ5dJ_TYt9RT0KKrGCdLvo6vpTB9OLDzeAmQFPgKVC8k17OqGtNGHjvHmu1ing0jiav30NsIWbykDKaXaAiVCcq1booQh9qVNiKOlgDXH9lllbP1T45kVMEDVHUEcfb_lJ7KJKydhuLilGzw5qAvn_NoKM_BqE2NO72blzW7ebuwuLaR-9W7cXnWCITIfjadAQ9q9PLPe9mPIwhOnrJWr4_uURxg91NWkX6Dd02DEoxN544igZnsQg7_E"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 lg:px-20 py-10">
+<!-- Header Actions -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+<div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white">Catálogo de Produtos</h2>
+<p class="text-slate-500 mt-1">Gerencie seu inventário e categorias de produtos.</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+                Cadastrar Novo
+            </button>
+</div>
+<div class="flex flex-col lg:flex-row gap-10">
+<!-- Filters Sidebar -->
+<aside class="w-full lg:w-64 flex flex-col gap-8">
+<!-- Search Bar -->
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border-none rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Pesquisar produtos..." type="text"/>
+</div>
+<!-- Category Filter -->
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">category</span>
+                        Categorias
+                    </h3>
+<div class="flex flex-col gap-1">
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-primary/10 text-primary font-semibold text-left">
+<span class="material-symbols-outlined text-xl">deployed_code</span>
+                            Todos
+                        </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors">
+<span class="material-symbols-outlined text-xl">storage</span>
+                            Geleias
+                        </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors">
+<span class="material-symbols-outlined text-xl">shopping_basket</span>
+                            Cestas
+                        </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors">
+<span class="material-symbols-outlined text-xl">brush</span>
+                            Artesanato
+                        </button>
+<button class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-left transition-colors">
+<span class="material-symbols-outlined text-xl">more_horiz</span>
+                            Outros
+                        </button>
+</div>
+</div>
+<!-- Price Range Filter -->
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">payments</span>
+                        Faixa de Preço
+                    </h3>
+<div class="px-2">
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full relative mb-6">
+<div class="absolute left-0 right-1/4 h-full bg-primary rounded-full"></div>
+<div class="absolute left-0 top-1/2 -translate-y-1/2 size-4 bg-white border-2 border-primary rounded-full shadow-sm"></div>
+<div class="absolute right-1/4 top-1/2 -translate-y-1/2 size-4 bg-white border-2 border-primary rounded-full shadow-sm"></div>
+</div>
+<div class="flex justify-between text-sm font-medium text-slate-500">
+<span>R$ 0</span>
+<span>R$ 500+</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Product Grid -->
+<section class="flex-1">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Product Card 1 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Geleia de Morango" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Artisanal strawberry jam jar with rustic lid" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChtIFRw3U_6C5UvJGRBUrd7VaL0P2Qaybz2sj_NcJsjeTIRo12okl_3WrVdUb3ue4CEvhBcy_LwW70L9CFnPCHpvJ9TKTfBH_UjApP1AJGxqUTFTF42jzkxuxemc0yBKMCA05PEW-6QxQctVlo1JOXs5FBMUR_esjVv381jgYH0kYd0QY3dz60q5CqhUDigzBB3jcxBgTYFHtfqMBL7mnFIUKtOISdHjJ-pY3dEYQ1eteb3TlIGxvmSddmwaBr-XrFpTarP4HuhSzu"/>
+<div class="absolute top-4 right-4">
+<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">Em estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Geleias</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Geleia de Morango Artesanal</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 24,90</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Cesta de Café" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Luxurious wooden breakfast gift basket" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBh5p9eNh_QDdyVSKE-ZmGyvAYiFH7fE2dsMgvWR5BVQOXhjYBu87u1vdDJV9A2GMpzKxCQJ_vqxIUsAjtH9HeNKlG1PWhPzx5DaM4FZBEiu8YbyR49fHDQPDmCth9n1EJT2bGMq2uoniSlumcNwWoehEBr94d7P_MxfZnhwYIFuVW9HK3zA6nclYV79zhdfXoSRxt-JvoZ634M-UhC_3JthOpltTTA4wT74LZhlAqPkRlttUA8nAsJ1Yzo26-bysiSutk34J8ySNXk"/>
+<div class="absolute top-4 right-4">
+<span class="bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">Baixo estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Cestas</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Cesta Café da Manhã Premium</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 189,00</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Vaso Artesanal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Handmade ceramic vase with abstract pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnubrFNCku8MW3LUWPxG_3OzMwpUOjApeDFETte6hTRyJcUvGgSKQt8w_qe00DROLiwxpxP5zl1MLwv-jgx8CM0xiCWBvENPhJ3vFbCDS6tXmOiH59M573chwrt3pNMQsAPWc-Tdp11NY4Zrv8ymkB3ENsl5RwzRuIQdDUHgkZDi5h2wsozFFApp7diOJVR5vr6QSAkGoNI0a-TNDhmablChvZFW4zxS4PFrriVX-plO8Adc5SzRROANVbJkzGM4YOBMR-ON627TZW"/>
+<div class="absolute top-4 right-4">
+<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">Em estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Artesanato</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Vaso de Cerâmica Pintado</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 45,00</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Geleia de Pimenta" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Spicy pepper jelly jar with red peppers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAROCBJ2A54JGPW1w-TR4i_Tpn5wpS4gkb75Q4p9g-09efSLO3O7g9hCpfnu75D4oYEmUSQGmTegcweThx14BgJzAEhuhFjs2KsSq2UmF9uM2g8wBppa-m9vQkOd9MZY7Orzo86NND69ocM9WVxAOR6PfA6Z0A2S9bt8pESs1lxXaM96K11N7dXWpyCKlla95Q5ZZ83IlaFfuFWx3MSCkbFCa9hj7ej8XCyBod_Osm08spyGE4nRT3aREMaqqmTtHRXBZ65nFvqEX4y"/>
+<div class="absolute top-4 right-4">
+<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">Em estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Geleias</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Geleia de Pimenta Defumada</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 28,00</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 5 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Sabonete Artesanal" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Natural handmade soaps tied with twine" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv8WF7OBN6sOBtfnyJroO9GtwRa1ratf5DmP4dKZklkQ5kLbSdyyGp_VUieGwa6d-Pv8b0t9g78rlorBnYpHIoZXmRaQI8LJJziWhVBoaGHVU_OWFhXS0GPXKMY7QvmxmwcmP3smIQBB_XkitLZYChTtZCs2IB96Oosj5bPfSF8fhJa7B-awKVv5YNSY9nBpRiiNO03rw975nab-BU0t3aeM3SVHAv3uAMXXr647wdTsSTIZT67iuXrJJtueMCOBh7QSVtpFdLVeg-"/>
+<div class="absolute top-4 right-4">
+<span class="bg-rose-100 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200">Sem estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Artesanato</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Kit Sabonetes Naturais</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 32,50</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 6 -->
+<div class="bg-white dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-shadow group">
+<div class="aspect-square bg-slate-100 relative overflow-hidden">
+<img alt="Doce de Leite" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Classic jar of creamy dulce de leche" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVVu90xA5t0JalIdd-mmsa4xSxgKU70PGD5B5lNtrPm3zfP-Tln-jSntMdDrBV_AxnJTOvqqD0azdGd2JQ-eqaW9zvrBDpc-9dYF0sQjjKNlwJ_35GViPZ2XAUyFEv1xON3_enAXK77mYigPFYrHf20uZQxMkmY5mHg6q8eSO8FwiHBzviSDT4orRRZU1tqdqj1XuVhuhY-jFexyD7OI75qiWJqTZqJiBD32q6iti8bPhVCocDTNXPu4E9EbJ9nnAh5NERpLyqtmZW"/>
+<div class="absolute top-4 right-4">
+<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">Em estoque</span>
+</div>
+</div>
+<div class="p-5">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Outros</span>
+<h4 class="text-lg font-bold text-slate-900 dark:text-white mt-1">Doce de Leite da Fazenda</h4>
+<div class="flex items-center justify-between mt-4">
+<span class="text-2xl font-black text-slate-900 dark:text-white">R$ 19,00</span>
+<button class="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center gap-2 mt-12">
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold">2</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold">3</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-primary hover:text-white transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<footer class="mt-20 border-t border-slate-200 dark:border-slate-700 py-10">
+<div class="max-w-7xl mx-auto px-6 text-center">
+<p class="text-slate-500 text-sm">© 2024 Inovação Imperatriz. Todos os direitos reservados.</p>
+</div>
+</footer>
+</body></html>
