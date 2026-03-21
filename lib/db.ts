@@ -14,7 +14,7 @@ export function getPool(): mysql.Pool {
 
   const host = process.env.MYSQL_HOST || 'localhost';
   const port = Number(process.env.MYSQL_PORT) || 3306;
-  const user = process.env.MYSQL_USER || 'root';
+  const user = process.env.MYSQL_USER || 'jornada';
   const password = process.env.MYSQL_PASSWORD || '';
   const database = process.env.MYSQL_DATABASE || 'jornada_produtor';
   const connectionLimit = Number(process.env.MYSQL_POOL_LIMIT) || 5;

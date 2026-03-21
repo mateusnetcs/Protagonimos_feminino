@@ -1,7 +1,7 @@
 #!/bin/sh
 # Inicializa banco (nao bloqueia - falha nao impede app de subir)
 HOST="${MYSQL_HOST:-mysql}"
-USER="${MYSQL_USER:-root}"
+USER="${MYSQL_USER:-jornada}"
 PASS="${MYSQL_PASSWORD:-changeme}"
 DB="${MYSQL_DATABASE:-jornada_produtor}"
 

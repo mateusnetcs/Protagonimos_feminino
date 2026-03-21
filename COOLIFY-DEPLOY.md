@@ -23,9 +23,9 @@ Na aba **Configuration** → **Environment Variables**, adicione **apenas** esta
 | `NEXTAUTH_URL` | `http://SEU-DOMINIO.sslip.io` (ex: `http://ckt3uc50odpx9lhxea9pxxwg.76.13.173.229.sslip.io`) | ✅ |
 | `APP_URL` | **Mesma URL do NEXTAUTH_URL** | ✅ |
 
-### ⚠️ NÃO adicione
+### ⚠️ NÃO adicione MYSQL_USER
 
-- **`MYSQL_USER`** – deixe em branco ou não adicione. O MySQL do Docker não aceita `MYSQL_USER=root`. O compose usa `root` automaticamente para a app.
+- Deixe em branco. O compose usa o usuário `jornada` por padrão (o MySQL não aceita `root` nessa variável).
 
 ### Opcionais (deixe vazio se não usar)
 

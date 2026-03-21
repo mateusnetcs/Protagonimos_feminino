@@ -35,7 +35,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
 
-RUN chmod +x /app/scripts/init-db.sh
+RUN chmod +x /app/scripts/init-db.sh /app/scripts/startup.sh
 
 USER nextjs
 
@@ -43,4 +43,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "echo '=== STARTUP ==='; export NEXTAUTH_URL=\"${NEXTAUTH_URL:-http://localhost:3000}\"; export NEXTAUTH_SECRET=\"${NEXTAUTH_SECRET:-secret-change-me}\"; if [ -z \"$APP_URL\" ] || [ \"$APP_URL\" = '\${NEXTAUTH_URL}' ]; then export APP_URL=\"$NEXTAUTH_URL\"; fi; echo \"NEXTAUTH_URL=$NEXTAUTH_URL\"; echo \"APP_URL=$APP_URL\"; /app/scripts/init-db.sh; echo '=== INICIANDO NODE ==='; exec node server.js 2>&1"]
+CMD ["/app/scripts/startup.sh"]

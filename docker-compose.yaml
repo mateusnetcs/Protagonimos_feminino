@@ -9,7 +9,7 @@ services:
     environment:
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
       MYSQL_PORT: 3306
-      MYSQL_USER: ${MYSQL_USER:-root}
+      MYSQL_USER: ${MYSQL_USER:-jornada}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-jornada_produtor}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-please-change-this-secret}
@@ -31,9 +31,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-jornada_produtor}
-      # MYSQL_USER não pode ser "root" - sobrescreve env do Coolify
-      MYSQL_USER: ""
-      MYSQL_PASSWORD: ""
+      MYSQL_USER: ${MYSQL_USER:-jornada}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
