@@ -1,7 +1,13 @@
-# Build
-FROM node:20-alpine AS builder
+# Build (slim para compatibilidade com mysql2 e módulos nativos)
+FROM node:20-slim AS builder
 
 WORKDIR /app
+
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -10,7 +16,7 @@ COPY . .
 RUN npm run build
 
 # Production
-FROM node:20-alpine AS runner
+FROM node:20-slim AS runner
 
 WORKDIR /app
 
