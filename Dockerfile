@@ -32,11 +32,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
 
-# mysql2 e bcryptjs para os scripts de init (standalone pode não incluí-los)
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json* ./package-lock.json*
-RUN npm install --omit=dev mysql2 bcryptjs
-
 USER nextjs
 
 EXPOSE 3000
