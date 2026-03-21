@@ -7,7 +7,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_USER: ${MYSQL_USER:-jornada}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
