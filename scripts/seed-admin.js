@@ -4,7 +4,9 @@
  * Credenciais: admin@adm / 123123
  */
 
-require('dotenv').config({ path: '.env.local' });
+if (!process.env.MYSQL_PASSWORD) {
+  try { require('dotenv').config({ path: '.env.local' }); } catch (_) {}
+}
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 
@@ -35,8 +37,8 @@ async function main() {
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   await conn.execute(
-    `INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)
-     ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), name = VALUES(name)`,
+    `INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'admin')
+     ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash), name = VALUES(name), role = 'admin'`,
     [EMAIL, passwordHash, NAME]
   );
 
