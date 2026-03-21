@@ -32,10 +32,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
 
+# mysql2 e bcryptjs para os scripts de init (standalone pode não incluí-los)
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package-lock.json* ./package-lock.json*
+RUN npm install --omit=dev mysql2 bcryptjs
+
 USER nextjs
 
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "node scripts/wait-for-mysql.js && (node scripts/setup-database.js || true) && (node scripts/seed-admin.js || true) && exec node server.js"]
+CMD ["sh", "-c", "echo '=== Aguardando MySQL ===' && node scripts/wait-for-mysql.js && echo '=== Inicializando banco ===' && node scripts/setup-database.js && echo '=== Criando admin ===' && node scripts/seed-admin.js && echo '=== Iniciando app ===' && exec node server.js"]
