@@ -1,7 +1,8 @@
 import NextAuth, { type AuthOptions } from 'next-auth';
 
-export function isAdminSession(session: { user?: { role?: string } } | null): boolean {
-  return !!session?.user && (session.user as { role?: string }).role === 'admin';
+export function isAdminSession(session: unknown): boolean {
+  const s = session as { user?: { role?: string } } | null | undefined;
+  return !!s?.user && (s.user as { role?: string }).role === 'admin';
 }
 import Credentials from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';

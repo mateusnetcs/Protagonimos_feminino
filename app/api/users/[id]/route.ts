@@ -1,12 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions, isAdminSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 import bcrypt from 'bcryptjs';
-
-function isAdmin(session: { user?: { role?: string } } | null): boolean {
-  return session?.user && (session.user as { role?: string }).role === 'admin';
-}
 
 export async function PATCH(
   _request: Request,
@@ -15,7 +11,7 @@ export async function PATCH(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    if (!isAdmin(session)) return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 });
+    if (!isAdminSession(session)) return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 });
 
     const { id } = await params;
     const userId = parseInt(id, 10);
@@ -90,7 +86,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    if (!isAdmin(session)) return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 });
+    if (!isAdminSession(session)) return NextResponse.json({ error: 'Acesso restrito a administradores' }, { status: 403 });
 
     const { id } = await params;
     const userId = parseInt(id, 10);

@@ -113,8 +113,9 @@ export async function GET(
 
     const { id } = await params;
     const uid = Number((session.user as { id?: string }).id) || null;
-    const whereClause = uid != null && !isAdminSession(session) ? 'id = ? AND user_id = ?' : 'id = ?';
-    const whereParams = uid != null && !isAdminSession(session) ? [id, uid] : [id];
+    const isAdmin = isAdminSession(session);
+    const whereClause = uid != null && !isAdmin ? 'id = ? AND user_id = ?' : 'id = ?';
+    const whereParams = uid != null && !isAdmin ? [id, uid] : [id];
 
     const rows = await query<any[]>(
       `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url FROM products WHERE ${whereClause}`,

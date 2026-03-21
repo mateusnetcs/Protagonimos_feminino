@@ -3,11 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
 import { query } from '@/lib/db';
 
-export async function GET(request?: Request) {
+export async function GET(request: Request) {
   try {
-    const url = request?.url ? new URL(request.url) : null;
-    const scopePublic = url?.searchParams.get('scope') === 'public';
-    const filterUserIdParam = url?.searchParams.get('user_id');
+    const url = new URL(request.url);
+    const scopePublic = url.searchParams.get('scope') === 'public';
+    const filterUserIdParam = url.searchParams.get('user_id');
 
     const session = await getServerSession(authOptions);
     const userId = session?.user ? (session.user as { id?: string }).id : null;

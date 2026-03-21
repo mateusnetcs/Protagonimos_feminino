@@ -12,6 +12,7 @@ export async function DELETE(
     if (!session?.user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
     const userId = (session.user as { id?: string }).id;
+    if (!userId) return NextResponse.json({ error: 'Sessão inválida' }, { status: 401 });
     const { id } = await params;
     if (!id) return NextResponse.json({ error: 'ID obrigatório' }, { status: 400 });
 

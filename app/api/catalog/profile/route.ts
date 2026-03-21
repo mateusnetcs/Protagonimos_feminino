@@ -65,8 +65,14 @@ export async function PATCH(request: Request) {
   if (hasAddr) {
     try {
       const updates = addrKeys.map((k) => `${k} = ?`).join(', ');
-      const vals = addrKeys.map((k) => (body[k] !== undefined ? body[k] : (session as Record<string, unknown>)[k]) ?? null);
-      await query(`UPDATE customers SET ${updates} WHERE id = ?`, [...vals, session.id]);
+      const vals: (string | number | boolean | null)[] = addrKeys.map((k) => {
+        const v = body[k] !== undefined ? body[k] : (session as Record<string, unknown>)[k];
+        if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return v;
+        if (v == null) return null;
+        return typeof v === 'object' ? null : String(v);
+      });
+      const custId = typeof session.id === 'string' || typeof session.id === 'number' ? session.id : String(session.id);
+      await query(`UPDATE customers SET ${updates} WHERE id = ?`, [...vals, custId]);
     } catch {
       // Colunas de endereço podem não existir
     }
