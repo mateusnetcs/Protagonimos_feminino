@@ -20,7 +20,7 @@ Na aba **Configuration** → **Environment Variables**, adicione **apenas** esta
 | `MYSQL_PASSWORD` | `20220015779Ma@` (ou outra senha forte) | ✅ |
 | `MYSQL_DATABASE` | `jornada_produtor` | ✅ |
 | `NEXTAUTH_SECRET` | `jornada-produtor-inovacao-imperatriz-2024` | ✅ |
-| `NEXTAUTH_URL` | `http://SEU-DOMINIO.sslip.io` (ex: `http://ckt3uc50odpx9lhxea9pxxwg.76.13.173.229.sslip.io`) | ✅ |
+| `NEXTAUTH_URL` | `https://SEU-DOMINIO` (ex: `https://protagonismo.chatboot.cloud`) | ✅ |
 | `APP_URL` | **Mesma URL do NEXTAUTH_URL** | ✅ |
 
 ### ⚠️ NÃO adicione MYSQL_USER
@@ -37,10 +37,12 @@ Na aba **Configuration** → **Environment Variables**, adicione **apenas** esta
 
 ---
 
-## 3. Domínio/URL
+## 3. Domínio e HTTPS
 
-1. Em **Configuration** → **Domains**, configure o domínio que o Coolify gerar (ex: `xxx.76.13.173.229.sslip.io`)
-2. Use essa **URL completa** em `NEXTAUTH_URL` e `APP_URL`
+1. Em **Configuration** → **Domains**, adicione seu domínio (ex: `protagonismo.chatboot.cloud`)
+2. Habilite **SSL/HTTPS** (Let's Encrypt) no Coolify para o domínio
+3. Use **https://** em `NEXTAUTH_URL` e `APP_URL` (ex: `https://protagonismo.chatboot.cloud`)
+4. O projeto inclui middleware que redireciona HTTP → HTTPS automaticamente
 
 ---
 
@@ -54,7 +56,7 @@ Na aba **Configuration** → **Environment Variables**, adicione **apenas** esta
 
 ## 5. Acesso após deploy
 
-- **URL:** `http://seu-dominio.sslip.io`
+- **URL:** `https://seu-dominio` (ou `http://` se SSL não estiver configurado)
 - **Login admin:** `admin@adm` / `123123`
 
 ---
@@ -65,8 +67,8 @@ Na aba **Configuration** → **Environment Variables**, adicione **apenas** esta
 MYSQL_PASSWORD=20220015779Ma@
 MYSQL_DATABASE=jornada_produtor
 NEXTAUTH_SECRET=jornada-produtor-inovacao-imperatriz-2024
-NEXTAUTH_URL=http://SEU-DOMINIO-AQUI.sslip.io
-APP_URL=http://SEU-DOMINIO-AQUI.sslip.io
+NEXTAUTH_URL=https://protagonismo.chatboot.cloud
+APP_URL=https://protagonismo.chatboot.cloud
 ```
 
-**Troque `SEU-DOMINIO-AQUI` pela URL que o Coolify mostrar após criar o recurso.**
+**Troque o domínio pelo seu. Use `https://` quando tiver SSL habilitado no Coolify.**
