@@ -43,4 +43,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-CMD ["sh", "-c", "echo '=== Init ===' && /app/scripts/init-db.sh && echo '=== Iniciando app ===' && exec node server.js"]
+CMD ["sh", "-c", "export NEXTAUTH_URL=\"${NEXTAUTH_URL:-http://localhost:3000}\"; export NEXTAUTH_SECRET=\"${NEXTAUTH_SECRET:-secret-change-me}\"; /app/scripts/init-db.sh; echo 'Iniciando app...'; exec node server.js"]
