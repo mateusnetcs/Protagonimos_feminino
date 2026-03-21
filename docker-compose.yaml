@@ -21,8 +21,7 @@ services:
       MERCADOPAGO_APP_ID: ${MERCADOPAGO_APP_ID:-}
       MERCADOPAGO_APP_SECRET: ${MERCADOPAGO_APP_SECRET:-}
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     networks:
       - app-network
 
@@ -34,12 +33,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-jornada_produtor}
     volumes:
       - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p\"$$MYSQL_ROOT_PASSWORD\" || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 45s
     networks:
       - app-network
 
