@@ -2,6 +2,7 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  staticPageGenerationTimeout: 120,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -33,7 +34,7 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   outputFileTracingIncludes: {
-    '/*': ['./node_modules/mysql2/**/*', './node_modules/bcryptjs/**/*', './node_modules/motion/**/*'],
+    '/': ['./node_modules/mysql2/**/*', './node_modules/bcryptjs/**/*'],
   },
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
