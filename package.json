@@ -12,7 +12,8 @@
     "db:seed": "node scripts/seed-admin.js",
     "db:migrate-catalog": "node scripts/migrate-catalog-tables.js",
     "db:migrate-customer-profile": "node scripts/migrate-customer-profile.js",
-    "db:migrate-post-gallery": "node scripts/migrate-post-gallery.js"
+    "db:migrate-post-gallery": "node scripts/migrate-post-gallery.js",
+    "db:migrate-customer-catalog-access": "node scripts/migrate-customer-catalog-access.js"
   },
   "dependencies": {
     "@google/genai": "^1.17.0",

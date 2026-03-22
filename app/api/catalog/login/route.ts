@@ -5,7 +5,8 @@ import { createSessionCookie, getSessionCookieHeader } from '@/lib/customer-auth
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const body = await request.json();
+    const { email, password } = body;
     if (!email || !password) {
       return NextResponse.json({ error: 'Email e senha são obrigatórios.' }, { status: 400 });
     }
@@ -32,6 +33,8 @@ export async function POST(request: Request) {
     } catch {
       // Colunas de perfil podem não existir ainda
     }
+    // Não adiciona acesso ao catálogo no login - apenas no cadastro. Assim o cliente só acessa o catálogo em que se registrou.
+
     const payload = createSessionCookie({
       id: c.id,
       email: c.email,

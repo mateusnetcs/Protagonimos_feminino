@@ -73,6 +73,7 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
     last_name: string;
     email: string;
     photo_url?: string | null;
+    birth_date?: string | null;
     cidade?: string | null;
     bairro?: string | null;
     rua?: string | null;
@@ -86,6 +87,7 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
   const [orders, setOrders] = useState<{ id: number; total: number; status: string; created_at: string; items_summary: string }[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [toast, setToast] = useState<{ msg: string } | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   const fetchCustomer = () => {
     fetch('/api/catalog/me', { credentials: 'include' })
@@ -97,6 +99,36 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
   useEffect(() => {
     fetchCustomer();
   }, []);
+
+  const fetchProducts = React.useCallback(() => {
+    if (!userId) return;
+    setLoading(true);
+    setAccessDenied(false);
+    const baseUrl = `/api/products?scope=public&user_id=${encodeURIComponent(userId)}`;
+    const url = `${baseUrl}&_t=${Date.now()}`;
+    fetch(url, {
+      credentials: 'include',
+      cache: 'no-store',
+      headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+    })
+      .then((r) => {
+        if (r.status === 403) {
+          return r.json().then((data) => {
+            if (data?.error === 'access_denied') {
+              setAccessDenied(true);
+              setProducts([]);
+            } else {
+              setProducts([]);
+            }
+          });
+        }
+        return r.json().then((data) => {
+          setProducts(Array.isArray(data) ? data : []);
+        });
+      })
+      .catch(() => setProducts([]))
+      .finally(() => setLoading(false));
+  }, [userId]);
 
   useEffect(() => {
     if (showOrders && customer) {
@@ -110,17 +142,25 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
   }, [showOrders, customer]);
 
   useEffect(() => {
-    const url = userId
-      ? `/api/products?scope=public&user_id=${encodeURIComponent(userId)}`
-      : '/api/products?scope=public';
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        setProducts(Array.isArray(data) ? data : []);
-      })
-      .catch(() => setProducts([]))
-      .finally(() => setLoading(false));
-  }, [userId]);
+    if (!userId) {
+      setLoading(true);
+      fetch('/api/products?scope=public', { credentials: 'include', cache: 'no-store' })
+        .then((r) => r.json())
+        .then((data) => setProducts(Array.isArray(data) ? data : []))
+        .catch(() => setProducts([]))
+        .finally(() => setLoading(false));
+      return;
+    }
+    fetchProducts();
+  }, [userId, customer, fetchProducts]);
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && userId) fetchProducts();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
+  }, [userId, fetchProducts]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -182,6 +222,63 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
           </div>
         </div>
       </div>
+    );
+  }
+
+  if (accessDenied && userId) {
+    return (
+      <>
+        <div className="min-h-screen bg-background-light py-8 px-4 flex items-center justify-center">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8 text-center">
+            <div className="inline-flex p-4 bg-amber-100 rounded-2xl text-amber-600 mb-6">
+              <span className="material-symbols-outlined text-4xl">lock</span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Acesso restrito</h2>
+            <p className="text-slate-600 mb-6">
+              Você não tem acesso a este catálogo. Seu cadastro é válido apenas para o catálogo em que você se registrou.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => setShowLogin(true)}
+                className="px-6 py-3 rounded-xl font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
+              >
+                Criar cadastro nesse catálogo
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await fetch('/api/catalog/me', { credentials: 'include' });
+                  const data = await res.json().catch(() => ({}));
+                  const catalogId = data?.allowed_catalog_id;
+                  if (catalogId != null) {
+                    window.location.href = `/catalogo/${catalogId}`;
+                  } else {
+                    window.location.href = '/';
+                  }
+                }}
+                className="px-6 py-3 rounded-xl font-semibold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                Voltar para Catálogo Antigo
+              </button>
+            </div>
+          </div>
+        </div>
+        {showLogin && (
+          <CatalogLoginModal
+            onClose={() => setShowLogin(false)}
+            onSuccess={() => {
+              fetchCustomer();
+              setShowLogin(false);
+              setAccessDenied(false);
+              if (userId) fetchProducts();
+            }}
+            catalogUserId={userId ?? undefined}
+            initialMode="register"
+            prefillCustomer={customer ? { name: customer.name, last_name: customer.last_name, email: customer.email, birth_date: customer.birth_date } : null}
+          />
+        )}
+      </>
     );
   }
 
@@ -503,6 +600,7 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
         <CatalogLoginModal
           onClose={() => setShowLogin(false)}
           onSuccess={() => { fetchCustomer(); setShowLogin(false); }}
+          catalogUserId={userId ?? undefined}
         />
       )}
       {toast && (

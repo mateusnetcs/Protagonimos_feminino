@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { getCustomerSession, getCustomerSessionFromRequest } from '@/lib/customer-auth';
 import { query } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
@@ -14,19 +17,8 @@ export async function GET(request: Request) {
     const uidNum = userId != null && userId !== '' ? Number(userId) : NaN;
     const uid = Number.isFinite(uidNum) ? uidNum : null;
 
-    // Admin pode filtrar por user_id específico (no painel)
-    const filterByUser =
-      !scopePublic &&
-      uid != null &&
-      !isAdminSession(session);
-    const filterByParam =
-      isAdminSession(session) &&
-      filterUserIdParam != null &&
-      filterUserIdParam !== '';
-    const paramUid = filterByParam ? parseInt(filterUserIdParam, 10) : NaN;
-    const uidToFilter = Number.isFinite(paramUid) ? paramUid : null;
-
     // Catálogo público: filtrar por user_id quando informado (link personalizado)
+    // SEMPRE verificar acesso do customer quando scope=public (admin não bypassa)
     const publicUserFilter =
       scopePublic &&
       filterUserIdParam != null &&
@@ -34,17 +26,46 @@ export async function GET(request: Request) {
     const publicUid = publicUserFilter ? parseInt(filterUserIdParam, 10) : NaN;
     const publicUidToFilter = Number.isFinite(publicUid) ? publicUid : null;
 
+    // Admin/produtor (painel): filtrar por user_id (só quando NÃO é catálogo público)
+    const filterByUser =
+      !scopePublic &&
+      uid != null &&
+      !isAdminSession(session);
+    const filterByParam =
+      !scopePublic &&
+      isAdminSession(session) &&
+      filterUserIdParam != null &&
+      filterUserIdParam !== '';
+    const paramUid = filterByParam ? parseInt(filterUserIdParam, 10) : NaN;
+    const uidToFilter = Number.isFinite(paramUid) ? paramUid : null;
+
     let whereClause = 'status = \'ativo\'';
     let params: (string | number)[] = [];
-    if (filterByUser) {
+    if (publicUserFilter && publicUidToFilter != null) {
+      // Catálogo de um produtor: verificar se customer logado tem acesso
+      // Usar cookies() do Next.js como fonte principal (mais confiável em Route Handlers)
+      const customerSession = await getCustomerSession() ?? getCustomerSessionFromRequest(request);
+      if (customerSession) {
+        const accessRows = await query<{ n: number }[]>(
+          'SELECT 1 as n FROM customer_catalog_access WHERE customer_id = ? AND user_id = ? LIMIT 1',
+          [customerSession.id, publicUidToFilter]
+        );
+        const hasAccess = Array.isArray(accessRows) && accessRows.length > 0;
+        if (!hasAccess) {
+          return NextResponse.json(
+            { error: 'access_denied', message: 'Você não tem acesso a este catálogo. Seu cadastro é válido apenas para o catálogo em que você se registrou.' },
+            { status: 403 }
+          );
+        }
+      }
+      whereClause = 'status = \'ativo\' AND user_id = ?';
+      params = [publicUidToFilter];
+    } else if (filterByUser) {
       whereClause = 'status = \'ativo\' AND user_id = ?';
       params = [uid];
     } else if (filterByParam && uidToFilter != null) {
       whereClause = 'status = \'ativo\' AND user_id = ?';
       params = [uidToFilter];
-    } else if (publicUserFilter && publicUidToFilter != null) {
-      whereClause = 'status = \'ativo\' AND user_id = ?';
-      params = [publicUidToFilter];
     }
 
     const rows = await query<any[]>(

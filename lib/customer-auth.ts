@@ -30,9 +30,7 @@ export function createSessionCookie(payload: Partial<CustomerSession> & Pick<Cus
   return Buffer.from(`${data}::${sig}`).toString('base64url');
 }
 
-export async function getCustomerSession(): Promise<CustomerSession | null> {
-  const store = await cookies();
-  const raw = store.get(COOKIE_NAME)?.value;
+function parseSessionFromCookieValue(raw: string): CustomerSession | null {
   if (!raw) return null;
   try {
     const decoded = Buffer.from(raw, 'base64url').toString('utf8');
@@ -45,6 +43,21 @@ export async function getCustomerSession(): Promise<CustomerSession | null> {
   } catch {
     return null;
   }
+}
+
+/** Obtém a sessão a partir do header Cookie da requisição (para Route Handlers). */
+export function getCustomerSessionFromRequest(request: Request): CustomerSession | null {
+  const cookieHeader = request.headers.get('cookie');
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(new RegExp(`${COOKIE_NAME}=([^;]+)`));
+  const raw = match?.[1]?.trim();
+  return parseSessionFromCookieValue(raw ?? '');
+}
+
+export async function getCustomerSession(): Promise<CustomerSession | null> {
+  const store = await cookies();
+  const raw = store.get(COOKIE_NAME)?.value;
+  return parseSessionFromCookieValue(raw ?? '');
 }
 
 export function getSessionCookieHeader(payload: string, maxAge = MAX_AGE): string {
