@@ -54,7 +54,12 @@ function formatPrice(v: number): string {
   return `R$ ${Number(v ?? 0).toFixed(2).replace('.', ',')}`;
 }
 
-export default function PublicCatalogView() {
+type PublicCatalogViewProps = {
+  /** ID do usuário para exibir apenas seus produtos. Se omitido, mostra catálogo geral. */
+  userId?: string | null;
+};
+
+export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -105,14 +110,17 @@ export default function PublicCatalogView() {
   }, [showOrders, customer]);
 
   useEffect(() => {
-    fetch('/api/products?scope=public')
+    const url = userId
+      ? `/api/products?scope=public&user_id=${encodeURIComponent(userId)}`
+      : '/api/products?scope=public';
+    fetch(url)
       .then((r) => r.json())
       .then((data) => {
         setProducts(Array.isArray(data) ? data : []);
       })
       .catch(() => setProducts([]))
       .finally(() => setLoading(false));
-  }, []);
+  }, [userId]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {

@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const uidNum = userId != null && userId !== '' ? Number(userId) : NaN;
     const uid = Number.isFinite(uidNum) ? uidNum : null;
 
-    // Admin pode filtrar por user_id específico
+    // Admin pode filtrar por user_id específico (no painel)
     const filterByUser =
       !scopePublic &&
       uid != null &&
@@ -26,6 +26,14 @@ export async function GET(request: Request) {
     const paramUid = filterByParam ? parseInt(filterUserIdParam, 10) : NaN;
     const uidToFilter = Number.isFinite(paramUid) ? paramUid : null;
 
+    // Catálogo público: filtrar por user_id quando informado (link personalizado)
+    const publicUserFilter =
+      scopePublic &&
+      filterUserIdParam != null &&
+      filterUserIdParam !== '';
+    const publicUid = publicUserFilter ? parseInt(filterUserIdParam, 10) : NaN;
+    const publicUidToFilter = Number.isFinite(publicUid) ? publicUid : null;
+
     let whereClause = 'status = \'ativo\'';
     let params: (string | number)[] = [];
     if (filterByUser) {
@@ -34,6 +42,9 @@ export async function GET(request: Request) {
     } else if (filterByParam && uidToFilter != null) {
       whereClause = 'status = \'ativo\' AND user_id = ?';
       params = [uidToFilter];
+    } else if (publicUserFilter && publicUidToFilter != null) {
+      whereClause = 'status = \'ativo\' AND user_id = ?';
+      params = [publicUidToFilter];
     }
 
     const rows = await query<any[]>(

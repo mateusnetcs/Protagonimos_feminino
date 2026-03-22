@@ -387,6 +387,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
                 setEditingProduct(null);
                 setShowProductForm(true);
               }}
+              userId={selectedUserId && isAdmin ? selectedUserId : (session?.user as { id?: string })?.id}
             />
           )
         ) : null}
