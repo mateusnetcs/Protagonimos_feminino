@@ -22,6 +22,7 @@ type Product = {
   cost_cmv?: number;
   price_sale?: number;
   image_url?: string;
+  show_in_catalog?: boolean | number;
 };
 
 type Props = {
@@ -57,6 +58,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
   const [costRaw, setCostRaw] = useState(formatVal(product?.cost_cmv ?? 0));
   const [priceRaw, setPriceRaw] = useState(formatVal(product?.price_sale ?? 0));
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? '');
+  const [showInCatalog, setShowInCatalog] = useState(product?.show_in_catalog !== 0 && product?.show_in_catalog !== false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -74,6 +76,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
       setCostRaw(formatVal(product.cost_cmv ?? 0));
       setPriceRaw(formatVal(product.price_sale ?? 0));
       setImageUrl(product.image_url ?? '');
+      setShowInCatalog(product.show_in_catalog !== 0 && product.show_in_catalog !== false);
     }
   }, [product]);
 
@@ -122,6 +125,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
             cost_cmv: costCmv,
             price_sale: priceSale,
             image_url: imageUrl || null,
+            show_in_catalog: showInCatalog,
           }),
         });
         if (!res.ok) {
@@ -141,6 +145,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
             cost_cmv: costCmv,
             price_sale: priceSale,
             image_url: imageUrl || null,
+            show_in_catalog: showInCatalog,
           }),
         });
         if (!res.ok) {
@@ -301,6 +306,18 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
             />
           </label>
         </div>
+        <label className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showInCatalog}
+            onChange={(e) => setShowInCatalog(e.target.checked)}
+            className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary"
+          />
+          <div>
+            <p className="font-bold text-slate-700">Mostrar no catálogo</p>
+            <p className="text-sm text-slate-500">Quando ligado, o produto aparece no catálogo. Desligado, não aparece.</p>
+          </div>
+        </label>
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 flex justify-between">
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase">Lucro Estimado</p>

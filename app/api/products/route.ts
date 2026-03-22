@@ -39,7 +39,8 @@ export async function GET(request: Request) {
     const paramUid = filterByParam ? parseInt(filterUserIdParam, 10) : NaN;
     const uidToFilter = Number.isFinite(paramUid) ? paramUid : null;
 
-    let whereClause = 'status = \'ativo\'';
+    const showInCatalogFilter = scopePublic ? ' AND COALESCE(show_in_catalog, 1) = 1' : '';
+    let whereClause = 'status = \'ativo\'' + showInCatalogFilter;
     let params: (string | number)[] = [];
     if (publicUserFilter && publicUidToFilter != null) {
       // Catálogo de um produtor: verificar se customer logado tem acesso
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
           );
         }
       }
-      whereClause = 'status = \'ativo\' AND user_id = ?';
+      whereClause = 'status = \'ativo\' AND user_id = ?' + showInCatalogFilter;
       params = [publicUidToFilter];
     } else if (filterByUser) {
       whereClause = 'status = \'ativo\' AND user_id = ?';
@@ -69,7 +70,7 @@ export async function GET(request: Request) {
     }
 
     const rows = await query<any[]>(
-      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url FROM products WHERE ${whereClause} ORDER BY name`,
+      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, show_in_catalog FROM products WHERE ${whereClause} ORDER BY name`,
       params
     );
     const data = Array.isArray(rows) ? rows : [rows];
@@ -91,9 +92,10 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
+    const showInCatalog = body.show_in_catalog !== false ? 1 : 0;
     await query(
-      `INSERT INTO products (name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [body.name ?? '', body.category || null, body.description || null, body.stock_current ?? 0, body.stock_min ?? 0, body.cost_cmv ?? 0, body.price_sale ?? 0, body.image_url || null, uid]
+      `INSERT INTO products (name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, user_id, show_in_catalog) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [body.name ?? '', body.category || null, body.description || null, body.stock_current ?? 0, body.stock_min ?? 0, body.cost_cmv ?? 0, body.price_sale ?? 0, body.image_url || null, uid, showInCatalog]
     );
     return NextResponse.json({ ok: true });
   } catch (err) {

@@ -140,6 +140,19 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
       .catch(() => alert('Erro ao excluir.'));
   };
 
+  const handleToggleShowInCatalog = async (p: ManagementProductRow, show: boolean) => {
+    const res = await fetch(`/api/products/${p.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ show_in_catalog: show }),
+    });
+    if (res.ok) void fetchProducts();
+    else {
+      const d = await res.json().catch(() => ({}));
+      alert((d as { error?: string }).error ?? 'Erro ao atualizar.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 pb-24">
       <div className="max-w-[1600px] mx-auto space-y-8">
@@ -359,6 +372,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
                 setShowProductForm(true);
               }}
               onDelete={handleDeleteProduct}
+              onToggleShowInCatalog={handleToggleShowInCatalog}
             />
           )
         ) : activeTab === 'catalogo' ? (

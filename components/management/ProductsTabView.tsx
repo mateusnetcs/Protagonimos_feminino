@@ -14,6 +14,7 @@ export type ManagementProductRow = {
   cost_cmv?: number;
   price_sale?: number;
   image_url?: string;
+  show_in_catalog?: boolean | number;
 };
 
 export type ProductsTabViewProps = {
@@ -22,6 +23,7 @@ export type ProductsTabViewProps = {
   onAdd: () => void;
   onEdit: (product: ManagementProductRow) => void;
   onDelete: (product: ManagementProductRow) => void;
+  onToggleShowInCatalog?: (product: ManagementProductRow, show: boolean) => void;
 };
 
 export default function ProductsTabView({
@@ -30,6 +32,7 @@ export default function ProductsTabView({
   onAdd,
   onEdit,
   onDelete,
+  onToggleShowInCatalog,
 }: ProductsTabViewProps) {
   return (
     <motion.div
@@ -79,11 +82,14 @@ export default function ProductsTabView({
                 <th className="px-6 py-4">Estoque</th>
                 <th className="px-6 py-4">Custo CMV</th>
                 <th className="px-6 py-4">Preço Venda</th>
+                <th className="px-6 py-4">No Catálogo</th>
                 <th className="px-6 py-4">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map((p) => (
+              {products.map((p) => {
+                const showInCatalog = p.show_in_catalog !== 0 && p.show_in_catalog !== false;
+                return (
                 <tr key={p.id} className="hover:bg-slate-50/50">
                   <td className="px-6 py-4 font-medium text-slate-900">{p.name}</td>
                   <td className="px-6 py-4 text-slate-600">{p.category || '-'}</td>
@@ -91,6 +97,25 @@ export default function ProductsTabView({
                   <td className="px-6 py-4">R$ {Number(p.cost_cmv ?? 0).toFixed(2).replace('.', ',')}</td>
                   <td className="px-6 py-4 font-bold text-primary">
                     R$ {Number(p.price_sale ?? 0).toFixed(2).replace('.', ',')}
+                  </td>
+                  <td className="px-6 py-4">
+                    {onToggleShowInCatalog ? (
+                      <button
+                        type="button"
+                        onClick={() => onToggleShowInCatalog(p, !showInCatalog)}
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                          showInCatalog ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                        }`}
+                        title={showInCatalog ? 'Ligado - aparece no catálogo' : 'Desligado - não aparece no catálogo'}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${showInCatalog ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                        {showInCatalog ? 'Ligado' : 'Desligado'}
+                      </button>
+                    ) : (
+                      <span className={`text-xs font-semibold ${showInCatalog ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        {showInCatalog ? 'Sim' : 'Não'}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1">
@@ -111,7 +136,8 @@ export default function ProductsTabView({
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         )}
