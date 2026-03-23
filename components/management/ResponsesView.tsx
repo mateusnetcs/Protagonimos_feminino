@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Eye, FileText, ExternalLink, Link2, Search, Store, X, XCircle, FileEdit, Plus, Trash2 } from 'lucide-react';
 import type { SurveyResponse } from '@/types/survey';
 import QuestionnaireBuilderModal, { type Questionnaire } from './QuestionnaireBuilderModal';
+import ConfirmModal from '../ConfirmModal';
 
 export type ResponsesViewProps = {
   responses: SurveyResponse[];
@@ -127,12 +128,18 @@ export default function ResponsesView({
   };
 
   const [deletingQuestionnaire, setDeletingQuestionnaire] = useState(false);
-  const handleDeleteQuestionnaire = async () => {
+  const [confirmDeleteQuestionnaire, setConfirmDeleteQuestionnaire] = useState<Questionnaire | null>(null);
+
+  const handleDeleteQuestionnaire = () => {
     if (!selectedQuestionnaire || !selectedQuestionnaireId) return;
-    if (!window.confirm(`Excluir o questionário "${selectedQuestionnaire.title}"? As respostas vinculadas serão mantidas.`)) return;
+    setConfirmDeleteQuestionnaire(selectedQuestionnaire);
+  };
+
+  const executeDeleteQuestionnaire = async () => {
+    if (!confirmDeleteQuestionnaire) return;
     setDeletingQuestionnaire(true);
     try {
-      const res = await fetch(`/api/questionnaires/${selectedQuestionnaire.id}`, {
+      const res = await fetch(`/api/questionnaires/${confirmDeleteQuestionnaire.id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -144,6 +151,7 @@ export default function ResponsesView({
       onQuestionnaireChange?.('');
       onRetry();
       setEditingQuestionnaire(null);
+      setConfirmDeleteQuestionnaire(null);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao excluir questionário.');
     } finally {
@@ -476,6 +484,23 @@ export default function ResponsesView({
             </motion.div>
           </div>
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+      {confirmDeleteQuestionnaire && (
+        <ConfirmModal
+          key={confirmDeleteQuestionnaire.id}
+          title="Excluir questionário"
+          message={`Excluir o questionário "${confirmDeleteQuestionnaire.title}"? Todas as respostas vinculadas também serão excluídas.`}
+          confirmLabel="Excluir"
+          cancelLabel="Cancelar"
+          variant="danger"
+          loading={deletingQuestionnaire}
+          loadingLabel="Excluindo..."
+          onConfirm={executeDeleteQuestionnaire}
+          onCancel={() => setConfirmDeleteQuestionnaire(null)}
+        />
+      )}
       </AnimatePresence>
 
       {editingQuestionnaire && (

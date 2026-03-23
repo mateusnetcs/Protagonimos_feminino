@@ -86,6 +86,7 @@ export async function DELETE(
     if (!isAdminSession(session)) return NextResponse.json({ error: 'Acesso restrito a administradores.' }, { status: 403 });
 
     const { id } = await params;
+    await query('DELETE FROM survey_responses WHERE questionnaire_id = ?', [id]);
     await query('DELETE FROM questionnaires WHERE id = ?', [id]);
     return NextResponse.json({ ok: true });
   } catch (err) {
