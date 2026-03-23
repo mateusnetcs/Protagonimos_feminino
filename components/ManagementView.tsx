@@ -44,6 +44,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResponse, setSelectedResponse] = useState<SurveyResponse | null>(null);
+  const [selectedQuestionnaireId, setSelectedQuestionnaireId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<TabId>('responses');
   const [mpConnectedToast, setMpConnectedToast] = useState(false);
   const [users, setUsers] = useState<{ id: string; name: string | null; email: string }[]>([]);
@@ -52,13 +53,19 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
   useEffect(() => {
     const tab = searchParams.get('tab');
     if (tab && VALID_TABS.includes(tab as TabId)) {
-      setActiveTab(tab as TabId);
+      const t = tab as TabId;
+      if (t === 'responses' && !isAdmin) return;
+      setActiveTab(t);
     }
     if (searchParams.get('mp_connected') === '1') {
       setMpConnectedToast(true);
       setTimeout(() => setMpConnectedToast(false), 5000);
     }
-  }, [searchParams]);
+  }, [searchParams, isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === 'responses') setActiveTab('catalogo');
+  }, [isAdmin, activeTab]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ManagementProductRow | null>(null);
   const [products, setProducts] = useState<ManagementProductRow[]>([]);
@@ -68,7 +75,10 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/survey-responses');
+      const url = selectedQuestionnaireId
+        ? `/api/survey-responses?questionnaire_id=${encodeURIComponent(selectedQuestionnaireId)}`
+        : '/api/survey-responses';
+      const res = await fetch(url);
       if (res.status === 401) {
         onBack();
         return;
@@ -113,9 +123,9 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
   };
 
   useEffect(() => {
-    fetchResponses();
+    if (isAdmin && activeTab === 'responses') fetchResponses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isAdmin, activeTab, selectedQuestionnaireId]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -215,17 +225,19 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
 
         {/* Menu de Navegação */}
         <div className="flex flex-nowrap gap-1.5 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('responses')}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
-              activeTab === 'responses'
-                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                : 'text-slate-500 hover:bg-slate-50'
-            }`}
-          >
-            <LayoutDashboard size={20} />
-            Respostas
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab('responses')}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+                activeTab === 'responses'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  : 'text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              <LayoutDashboard size={20} />
+              Respostas
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('catalogo')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
@@ -318,7 +330,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
           </button>
         </div>
 
-        {activeTab === 'responses' ? (
+        {activeTab === 'responses' && isAdmin ? (
           <ResponsesView
             responses={responses}
             loading={loading}
@@ -328,6 +340,9 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             selectedResponse={selectedResponse}
             onSelectResponse={setSelectedResponse}
             onRetry={fetchResponses}
+            showCreateQuestionnaire
+            selectedQuestionnaireId={selectedQuestionnaireId}
+            onQuestionnaireChange={setSelectedQuestionnaireId}
           />
         ) : activeTab === 'pdv' ? (
           <PDVView />
@@ -404,7 +419,21 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
               userId={selectedUserId && isAdmin ? selectedUserId : (session?.user as { id?: string })?.id}
             />
           )
-        ) : null}
+        ) : (
+          <CatalogManagementTab
+            products={products}
+            loading={productsLoading}
+            onEditProduct={(p) => {
+              setEditingProduct(p);
+              setShowProductForm(true);
+            }}
+            onAddProduct={() => {
+              setEditingProduct(null);
+              setShowProductForm(true);
+            }}
+            userId={selectedUserId && isAdmin ? selectedUserId : (session?.user as { id?: string })?.id}
+          />
+        )}
       </div>
     </div>
   );

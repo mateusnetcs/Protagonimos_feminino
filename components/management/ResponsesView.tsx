@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Eye, FileText, Search, Store, X, XCircle } from 'lucide-react';
+import { Eye, FileText, ExternalLink, Link2, Search, Store, X, XCircle, FileEdit, Plus } from 'lucide-react';
 import type { SurveyResponse } from '@/types/survey';
+import QuestionnaireBuilderModal, { type Questionnaire } from './QuestionnaireBuilderModal';
 
 export type ResponsesViewProps = {
   responses: SurveyResponse[];
@@ -14,6 +15,9 @@ export type ResponsesViewProps = {
   selectedResponse: SurveyResponse | null;
   onSelectResponse: (response: SurveyResponse | null) => void;
   onRetry: () => void;
+  showCreateQuestionnaire?: boolean;
+  selectedQuestionnaireId?: string;
+  onQuestionnaireChange?: (id: string) => void;
 };
 
 function DetailItem({ label, value }: { label: string; value: string }) {
@@ -56,12 +60,86 @@ export default function ResponsesView({
   selectedResponse,
   onSelectResponse,
   onRetry,
+  showCreateQuestionnaire = false,
+  selectedQuestionnaireId = '',
+  onQuestionnaireChange,
 }: ResponsesViewProps) {
-  const filteredResponses = responses.filter(
-    (r) =>
-      r.sugestao?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.produtos?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
+  const [editingQuestionnaire, setEditingQuestionnaire] = useState<Questionnaire | null>(null);
+  const [creatingQuestionnaire, setCreatingQuestionnaire] = useState(false);
+
+  const selectedQuestionnaire = questionnaires.find((q) => q.id === selectedQuestionnaireId) ?? questionnaires[0];
+  const surveyUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/questionario${selectedQuestionnaire?.id ? `?id=${selectedQuestionnaire.id}` : ''}`
+    : '';
+
+  useEffect(() => {
+    fetch('/api/questionnaires', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setQuestionnaires(list);
+      })
+      .catch(() => setQuestionnaires([]));
+  }, []);
+
+  const fetchQuestionnaires = () => {
+    fetch('/api/questionnaires', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        const list = Array.isArray(data) ? data : [];
+        setQuestionnaires(list);
+      })
+      .catch(() => setQuestionnaires([]));
+  };
+
+  const handleCreateQuestionnaire = async () => {
+    setCreatingQuestionnaire(true);
+    try {
+      const res = await fetch('/api/questionnaires', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Novo questionário' }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error((data as { error?: string }).error ?? 'Erro ao criar');
+      fetchQuestionnaires();
+      if (data.id) {
+        onQuestionnaireChange?.(String(data.id));
+        setEditingQuestionnaire({ id: data.id, title: 'Novo questionário' });
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao criar questionário.');
+    } finally {
+      setCreatingQuestionnaire(false);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(surveyUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2500);
+    } catch {
+      alert('Não foi possível copiar o link.');
+    }
+  };
+
+  const filteredResponses = !searchTerm.trim()
+    ? responses
+    : responses.filter((r) => {
+        const term = searchTerm.toLowerCase();
+        const sugestao = r.sugestao?.toLowerCase() ?? '';
+        const produtos = r.produtos?.toLowerCase() ?? '';
+        const answersStr = r.answers_json
+          ? Object.values(r.answers_json)
+              .map((v) => (Array.isArray(v) ? v.join(' ') : String(v ?? '')))
+              .join(' ')
+              .toLowerCase()
+          : '';
+        return sugestao.includes(term) || produtos.includes(term) || answersStr.includes(term);
+      });
 
   return (
     <>
@@ -92,7 +170,68 @@ export default function ResponsesView({
             <Store size={20} className="text-primary" />
             Respostas Detalhadas
           </h2>
-          <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            {showCreateQuestionnaire && (
+              <>
+                <select
+                  value={selectedQuestionnaireId}
+                  onChange={(e) => onQuestionnaireChange?.(e.target.value)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 focus:ring-2 focus:ring-primary/20 outline-none"
+                >
+                  <option value="">Todas as respostas</option>
+                  {questionnaires.map((q) => (
+                    <option key={q.id} value={q.id}>{q.title}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleCreateQuestionnaire}
+                  disabled={creatingQuestionnaire}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm disabled:opacity-70"
+                >
+                  <Plus size={18} />
+                  Novo questionário
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!selectedQuestionnaire) return;
+                    try {
+                      const r = await fetch(`/api/questionnaires/${selectedQuestionnaire.id}`, { credentials: 'include' });
+                      const data = r.ok ? await r.json() : selectedQuestionnaire;
+                      setEditingQuestionnaire({ ...selectedQuestionnaire, ...data });
+                    } catch {
+                      setEditingQuestionnaire(selectedQuestionnaire);
+                    }
+                  }}
+                  disabled={!selectedQuestionnaire}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm disabled:opacity-50"
+                >
+                  <FileEdit size={18} />
+                  Editar
+                </button>
+                <a
+                  href={surveyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors text-sm"
+                >
+                  <ExternalLink size={18} />
+                  Abrir questionário
+                </a>
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-colors text-sm border ${
+                    linkCopied ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                  }`}
+                >
+                  <Link2 size={18} />
+                  {linkCopied ? 'Link copiado!' : 'Copiar link'}
+                </button>
+              </>
+            )}
+            <div className="relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -101,6 +240,7 @@ export default function ResponsesView({
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
             />
+            </div>
           </div>
         </div>
 
@@ -142,24 +282,24 @@ export default function ResponsesView({
                     <td className="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">
                       {new Date(res.created_at).toLocaleDateString('pt-BR')}
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium">{res.primeira_vez}</td>
-                    <td className="px-6 py-4 text-sm font-medium">{res.idade}</td>
-                    <td className="px-6 py-4 text-sm">{res.tempo_atuacao}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{res.answers_json?.['primeira_vez'] ?? res.primeira_vez ?? '-'}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{res.answers_json?.['idade'] ?? res.idade ?? '-'}</td>
+                    <td className="px-6 py-4 text-sm">{res.answers_json?.['tempo_atuacao'] ?? res.tempo_atuacao ?? '-'}</td>
                     <td className="px-6 py-4">
                       <span
                         className={`px-2 py-1 rounded-md text-xs font-bold uppercase whitespace-nowrap ${
-                          res.renda_agricultura === 'SIM'
+                          (res.answers_json?.['renda_agricultura'] ?? res.renda_agricultura) === 'SIM'
                             ? 'bg-green-50 text-green-600'
                             : 'bg-red-50 text-red-600'
                         }`}
                       >
-                        {res.renda_agricultura}
+                        {res.answers_json?.['renda_agricultura'] ?? res.renda_agricultura ?? '-'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm max-w-[150px] truncate">{res.produtos}</td>
+                    <td className="px-6 py-4 text-sm max-w-[150px] truncate">{res.answers_json?.['produtos'] ?? res.produtos ?? '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {res.locais_venda?.slice(0, 1).map((l, i) => (
+                        {((res.answers_json?.['locais_venda'] as string[] | undefined) ?? res.locais_venda ?? [])?.slice(0, 1).map((l, i) => (
                           <span
                             key={i}
                             className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[10px] font-bold"
@@ -167,18 +307,18 @@ export default function ResponsesView({
                             {l}
                           </span>
                         ))}
-                        {res.locais_venda?.length > 1 && (
+                        {((res.answers_json?.['locais_venda'] as string[] | undefined) ?? res.locais_venda ?? []).length > 1 && (
                           <span className="text-[10px] text-slate-400 font-bold">
-                            +{res.locais_venda.length - 1}
+                            +{((res.answers_json?.['locais_venda'] as string[] | undefined) ?? res.locais_venda ?? []).length - 1}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm font-medium">{res.divulga_redes}</td>
-                    <td className="px-6 py-4 text-sm font-medium">{res.controla_financas}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{res.answers_json?.['divulga_redes'] ?? res.divulga_redes ?? '-'}</td>
+                    <td className="px-6 py-4 text-sm font-medium">{res.answers_json?.['controla_financas'] ?? res.controla_financas ?? '-'}</td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {res.dificuldades?.slice(0, 1).map((d, i) => (
+                        {((res.answers_json?.['dificuldades'] as string[] | undefined) ?? res.dificuldades ?? [])?.slice(0, 1).map((d, i) => (
                           <span
                             key={i}
                             className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded text-[10px] font-bold"
@@ -186,9 +326,9 @@ export default function ResponsesView({
                             {d}
                           </span>
                         ))}
-                        {res.dificuldades?.length > 1 && (
+                        {((res.answers_json?.['dificuldades'] as string[] | undefined) ?? res.dificuldades ?? []).length > 1 && (
                           <span className="text-[10px] text-slate-400 font-bold">
-                            +{res.dificuldades.length - 1}
+                            +{((res.answers_json?.['dificuldades'] as string[] | undefined) ?? res.dificuldades ?? []).length - 1}
                           </span>
                         )}
                       </div>
@@ -247,30 +387,47 @@ export default function ResponsesView({
               </div>
 
               <div className="p-8 overflow-y-auto space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <DetailItem label="Primeira vez na feira?" value={selectedResponse.primeira_vez} />
-                  <DetailItem label="Faixa Etária" value={selectedResponse.idade} />
-                  <DetailItem label="Tempo de Atuação" value={selectedResponse.tempo_atuacao} />
-                  <DetailItem label="Renda vem da agricultura?" value={selectedResponse.renda_agricultura} />
-                  <DetailItem label="Produtos que comercializa" value={selectedResponse.produtos} />
-                  <DetailItem label="Divulga nas redes sociais?" value={selectedResponse.divulga_redes} />
-                  <DetailItem label="Controla as finanças?" value={selectedResponse.controla_financas} />
-                  <DetailItem label="Consegue conciliar com a família?" value={selectedResponse.conciliar_familia} />
-                </div>
-
-                <div className="space-y-4 pt-4 border-t border-slate-100">
-                  <DetailList label="Locais de Venda" items={selectedResponse.locais_venda} />
-                  <DetailList label="Maiores Dificuldades" items={selectedResponse.dificuldades} />
-                  <DetailList label="Temas que gostaria de aprender" items={selectedResponse.temas_aprender} />
-                  <div className="space-y-1">
-                    <p className="text-xs font-black text-slate-400 uppercase tracking-wider">
-                      Sugestões ou Comentários
-                    </p>
-                    <p className="text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
-                      &quot;{selectedResponse.sugestao || 'Nenhuma sugestão enviada.'}&quot;
-                    </p>
+                {selectedResponse.answers_json && Object.keys(selectedResponse.answers_json).length > 0 ? (
+                  <div className="space-y-4">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Respostas</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(selectedResponse.answers_json).map(([key, val]) => (
+                        <DetailItem
+                          key={key}
+                          label={key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                          value={Array.isArray(val) ? val.join(', ') : String(val ?? '')}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <DetailItem label="Primeira vez na feira?" value={selectedResponse.primeira_vez} />
+                      <DetailItem label="Faixa Etária" value={selectedResponse.idade} />
+                      <DetailItem label="Tempo de Atuação" value={selectedResponse.tempo_atuacao} />
+                      <DetailItem label="Renda vem da agricultura?" value={selectedResponse.renda_agricultura} />
+                      <DetailItem label="Produtos que comercializa" value={selectedResponse.produtos} />
+                      <DetailItem label="Divulga nas redes sociais?" value={selectedResponse.divulga_redes} />
+                      <DetailItem label="Controla as finanças?" value={selectedResponse.controla_financas} />
+                      <DetailItem label="Consegue conciliar com a família?" value={selectedResponse.conciliar_familia} />
+                    </div>
+
+                    <div className="space-y-4 pt-4 border-t border-slate-100">
+                      <DetailList label="Locais de Venda" items={selectedResponse.locais_venda ?? []} />
+                      <DetailList label="Maiores Dificuldades" items={selectedResponse.dificuldades ?? []} />
+                      <DetailList label="Temas que gostaria de aprender" items={selectedResponse.temas_aprender ?? []} />
+                      <div className="space-y-1">
+                        <p className="text-xs font-black text-slate-400 uppercase tracking-wider">
+                          Sugestões ou Comentários
+                        </p>
+                        <p className="text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-100 italic">
+                          &quot;{selectedResponse.sugestao || 'Nenhuma sugestão enviada.'}&quot;
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
@@ -285,6 +442,18 @@ export default function ResponsesView({
           </div>
         )}
       </AnimatePresence>
+
+      {editingQuestionnaire && (
+        <QuestionnaireBuilderModal
+          questionnaire={editingQuestionnaire}
+          onClose={() => setEditingQuestionnaire(null)}
+          onSaved={() => {
+            fetchQuestionnaires();
+            setEditingQuestionnaire(null);
+            onRetry();
+          }}
+        />
+      )}
     </>
   );
 }

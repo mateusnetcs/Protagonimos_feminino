@@ -16,9 +16,10 @@ import {
 
 type SurveyAppProps = {
   onBackToLanding: () => void;
+  questionnaireId?: string;
 };
 
-export default function SurveyApp({ onBackToLanding }: SurveyAppProps) {
+export default function SurveyApp({ onBackToLanding, questionnaireId }: SurveyAppProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [answers, setAnswers] = useState({
@@ -83,6 +84,7 @@ export default function SurveyApp({ onBackToLanding }: SurveyAppProps) {
           conciliar_familia: answers.conciliarFamilia,
           temas_aprender: answers.temasAprender,
           sugestao: answers.sugestao,
+          ...(questionnaireId && { questionnaire_id: questionnaireId }),
         }),
       });
       if (!res.ok) throw new Error('Erro');
