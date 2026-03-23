@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, getPool } from '@/lib/db';
 
 export async function GET(
   _request: Request,
@@ -9,6 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    await ensureConfigJsonColumn();
     const rows = await query<any[]>(
       'SELECT id, title, is_active, config_json, created_at, updated_at FROM questionnaires WHERE id = ?',
       [id]
@@ -20,6 +21,17 @@ export async function GET(
   } catch (err) {
     console.error('Questionnaire get error:', err);
     return NextResponse.json({ error: 'Erro ao carregar.' }, { status: 500 });
+  }
+}
+
+async function ensureConfigJsonColumn(): Promise<void> {
+  const pool = getPool();
+  const [rows] = await pool.execute<any[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'questionnaires' AND COLUMN_NAME = 'config_json'"
+  );
+  const hasColumn = Array.isArray(rows) && rows.length > 0;
+  if (!hasColumn) {
+    await pool.execute('ALTER TABLE questionnaires ADD COLUMN config_json JSON DEFAULT NULL');
   }
 }
 
@@ -48,13 +60,19 @@ export async function PATCH(
       ]);
     }
     if (body.config_json !== undefined) {
+      await ensureConfigJsonColumn();
       const cfg = typeof body.config_json === 'string' ? body.config_json : JSON.stringify(body.config_json);
       await query('UPDATE questionnaires SET config_json = ? WHERE id = ?', [cfg, id]);
     }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('Questionnaire update error:', err);
-    return NextResponse.json({ error: 'Erro ao salvar.' }, { status: 500 });
+    const msg = err instanceof Error ? err.message : '';
+    const isColumnError = typeof msg === 'string' && (msg.includes('config_json') || msg.includes('Unknown column'));
+    return NextResponse.json(
+      { error: isColumnError ? 'Execute a migração: node scripts/add-questionnaire-config.js' : 'Erro ao salvar.' },
+      { status: 500 }
+    );
   }
 }
 

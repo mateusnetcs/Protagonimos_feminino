@@ -306,20 +306,14 @@ export default function QuestionnaireBuilderModal({
     setSaving(true);
     setError('');
     try {
-      const [titleRes, configRes] = await Promise.all([
-        fetch(`/api/questionnaires/${questionnaire.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: t }),
-        }),
-        fetch(`/api/questionnaires/${questionnaire.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ config_json: cleanedConfig }),
-        }),
-      ]);
-      if (!titleRes.ok || !configRes.ok) {
-        const d = await configRes.json().catch(() => ({}));
+      const res = await fetch(`/api/questionnaires/${questionnaire.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ title: t, config_json: cleanedConfig }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
         throw new Error((d as { error?: string }).error ?? 'Erro ao salvar');
       }
       onSaved();
