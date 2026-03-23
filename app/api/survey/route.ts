@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, getPool } from '@/lib/db';
+
+async function ensureAnswersJsonColumn(): Promise<void> {
+  const pool = getPool();
+  const [rows] = await pool.execute<any[]>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'survey_responses' AND COLUMN_NAME = 'answers_json'"
+  );
+  const hasColumn = Array.isArray(rows) && rows.length > 0;
+  if (!hasColumn) {
+    await pool.execute('ALTER TABLE survey_responses ADD COLUMN answers_json JSON DEFAULT NULL');
+  }
+}
 
 export async function POST(request: Request) {
   try {
@@ -8,6 +19,7 @@ export async function POST(request: Request) {
     const qId = Number.isFinite(questionnaireId) ? questionnaireId : null;
 
     if (body.answers_json != null) {
+      await ensureAnswersJsonColumn();
       const answersJson = typeof body.answers_json === 'string'
         ? body.answers_json
         : JSON.stringify(body.answers_json);

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Eye, FileText, ExternalLink, Link2, Search, Store, X, XCircle, FileEdit, Plus } from 'lucide-react';
+import { Eye, FileText, ExternalLink, Link2, Search, Store, X, XCircle, FileEdit, Plus, Trash2 } from 'lucide-react';
 import type { SurveyResponse } from '@/types/survey';
 import QuestionnaireBuilderModal, { type Questionnaire } from './QuestionnaireBuilderModal';
 
@@ -126,6 +126,31 @@ export default function ResponsesView({
     }
   };
 
+  const [deletingQuestionnaire, setDeletingQuestionnaire] = useState(false);
+  const handleDeleteQuestionnaire = async () => {
+    if (!selectedQuestionnaire || !selectedQuestionnaireId) return;
+    if (!window.confirm(`Excluir o questionário "${selectedQuestionnaire.title}"? As respostas vinculadas serão mantidas.`)) return;
+    setDeletingQuestionnaire(true);
+    try {
+      const res = await fetch(`/api/questionnaires/${selectedQuestionnaire.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error((d as { error?: string }).error ?? 'Erro ao excluir');
+      }
+      fetchQuestionnaires();
+      onQuestionnaireChange?.('');
+      onRetry();
+      setEditingQuestionnaire(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Erro ao excluir questionário.');
+    } finally {
+      setDeletingQuestionnaire(false);
+    }
+  };
+
   const filteredResponses = !searchTerm.trim()
     ? responses
     : responses.filter((r) => {
@@ -204,11 +229,21 @@ export default function ResponsesView({
                       setEditingQuestionnaire(selectedQuestionnaire);
                     }
                   }}
-                  disabled={!selectedQuestionnaire}
+                  disabled={!selectedQuestionnaire || !selectedQuestionnaireId}
                   className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors text-sm disabled:opacity-50"
                 >
                   <FileEdit size={18} />
                   Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteQuestionnaire}
+                  disabled={!selectedQuestionnaire || !selectedQuestionnaireId || deletingQuestionnaire}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold border border-red-200 text-red-600 hover:bg-red-50 transition-colors text-sm disabled:opacity-50"
+                  title="Excluir questionário"
+                >
+                  <Trash2 size={18} />
+                  Excluir
                 </button>
                 <a
                   href={surveyUrl}
