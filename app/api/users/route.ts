@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser, RESTRICTED_USER_ID } from '@/lib/restricted-access';
 import { query } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
@@ -14,7 +15,9 @@ export async function GET() {
       'SELECT id, email, name, role FROM users ORDER BY name, email'
     );
     const data = Array.isArray(rows) ? rows : [rows];
-    return NextResponse.json(data.map((u) => ({ ...u, id: String(u.id) })));
+    const sessionId = (session.user as { id?: string })?.id;
+    const filtered = data.filter((u) => canAdminAccessUser(sessionId, u.id));
+    return NextResponse.json(filtered.map((u) => ({ ...u, id: String(u.id) })));
   } catch (err) {
     console.error('Users list error:', err);
     return NextResponse.json({ error: 'Erro ao listar usuários' }, { status: 500 });

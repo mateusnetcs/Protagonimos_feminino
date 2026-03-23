@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser } from '@/lib/restricted-access';
 import { query } from '@/lib/db';
 
 export async function PATCH(
@@ -63,13 +64,23 @@ export async function PATCH(
     }
 
     const uid = Number((session.user as { id?: string }).id) || null;
-    if (uid != null && !isAdminSession(session)) {
+    const isAdmin = isAdminSession(session);
+    if (uid != null && !isAdmin) {
       const owner = await query<{ id: number }[]>(
         'SELECT id FROM products WHERE id = ? AND user_id = ?',
         [id, uid]
       );
       if (!Array.isArray(owner) || owner.length === 0) {
         return NextResponse.json({ error: 'Produto não encontrado ou sem permissão' }, { status: 404 });
+      }
+    } else if (isAdmin) {
+      const product = await query<{ user_id: number | null }[]>(
+        'SELECT user_id FROM products WHERE id = ?',
+        [id]
+      );
+      const row = Array.isArray(product) ? product[0] : product;
+      if (row && !canAdminAccessUser((session.user as { id?: string })?.id, row.user_id)) {
+        return NextResponse.json({ error: 'Acesso negado a este produto.' }, { status: 403 });
       }
     }
     values.push(id);
@@ -94,13 +105,23 @@ export async function DELETE(
 
     const { id } = await params;
     const uid = Number((session.user as { id?: string }).id) || null;
-    if (uid != null && !isAdminSession(session)) {
+    const isAdmin = isAdminSession(session);
+    if (uid != null && !isAdmin) {
       const owner = await query<{ id: number }[]>(
         'SELECT id FROM products WHERE id = ? AND user_id = ?',
         [id, uid]
       );
       if (!Array.isArray(owner) || owner.length === 0) {
         return NextResponse.json({ error: 'Produto não encontrado ou sem permissão' }, { status: 404 });
+      }
+    } else if (isAdmin) {
+      const product = await query<{ user_id: number | null }[]>(
+        'SELECT user_id FROM products WHERE id = ?',
+        [id]
+      );
+      const row = Array.isArray(product) ? product[0] : product;
+      if (row && !canAdminAccessUser((session.user as { id?: string })?.id, row.user_id)) {
+        return NextResponse.json({ error: 'Acesso negado a este produto.' }, { status: 403 });
       }
     }
     await query(`UPDATE products SET status = 'inativo' WHERE id = ?`, [id]);
@@ -126,13 +147,17 @@ export async function GET(
     const whereParams = uid != null && !isAdmin ? [id, uid] : [id];
 
     const rows = await query<any[]>(
-      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, show_in_catalog, barcode FROM products WHERE ${whereClause}`,
+      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, show_in_catalog, barcode, user_id FROM products WHERE ${whereClause}`,
       whereParams
     );
     const data = Array.isArray(rows) ? rows : [rows];
     const p = data[0];
     if (!p) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 });
-    return NextResponse.json({ ...p, id: String(p.id) });
+    if (isAdmin && !canAdminAccessUser((session.user as { id?: string })?.id, p.user_id)) {
+      return NextResponse.json({ error: 'Acesso negado a este produto.' }, { status: 403 });
+    }
+    const { user_id: _uid, ...rest } = p;
+    return NextResponse.json({ ...rest, id: String(p.id) });
   } catch (err) {
     console.error('Product get error:', err);
     return NextResponse.json({ error: 'Erro ao carregar.' }, { status: 500 });

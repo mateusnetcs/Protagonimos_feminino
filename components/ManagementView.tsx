@@ -181,6 +181,13 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
     }
   }, [isAdmin]);
 
+  const sessionUserId = (session?.user as { id?: string })?.id;
+  useEffect(() => {
+    if (selectedUserId === '13' && sessionUserId !== '1') {
+      setSelectedUserId('');
+    }
+  }, [selectedUserId, sessionUserId]);
+
   useEffect(() => {
     if (activeTab === 'produtos' || activeTab === 'catalogo' || activeTab === 'post') fetchProducts();
   }, [activeTab, selectedUserId]); // eslint-disable-line react-hooks/exhaustive-deps

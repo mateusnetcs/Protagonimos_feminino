@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser } from '@/lib/restricted-access';
 import { query, getPool } from '@/lib/db';
 
 type NfeItem = {
@@ -60,9 +61,11 @@ export async function POST(request: Request) {
       decisions: Decision[];
       userId?: string;
     };
-    const uid = isAdminSession(session) && targetUserId && !isNaN(Number(targetUserId))
-      ? Number(targetUserId)
-      : sessionUid;
+    const targetUid = targetUserId && !isNaN(Number(targetUserId)) ? Number(targetUserId) : null;
+    if (targetUid != null && !canAdminAccessUser((session.user as { id?: string })?.id, targetUid)) {
+      return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+    }
+    const uid = isAdminSession(session) && targetUid != null ? targetUid : sessionUid;
 
     if (!items?.length || !decisions?.length) {
       return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser } from '@/lib/restricted-access';
 import { query, getPool } from '@/lib/db';
 
 async function ensureNotaImportSchema() {
@@ -40,9 +41,11 @@ export async function POST(request: Request) {
     const cnpj = String(supplierCnpj || '').replace(/\D/g, '');
     const sessionUid = (session.user as { id?: string })?.id;
     const sessionUidNum = sessionUid && !isNaN(Number(sessionUid)) ? Number(sessionUid) : null;
-    const uid = isAdminSession(session) && filterUserId && !isNaN(Number(filterUserId))
-      ? Number(filterUserId)
-      : sessionUidNum;
+    const targetUid = filterUserId && !isNaN(Number(filterUserId)) ? Number(filterUserId) : null;
+    if (targetUid != null && !canAdminAccessUser(sessionUid, targetUid)) {
+      return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+    }
+    const uid = isAdminSession(session) && targetUid != null ? targetUid : sessionUidNum;
     const products = uid != null
       ? await query<any[]>('SELECT id, name, barcode, price_sale, cost_cmv FROM products WHERE status = ? AND (user_id IS NULL OR user_id = ?) ORDER BY name', ['ativo', uid])
       : await query<any[]>('SELECT id, name, barcode, price_sale, cost_cmv FROM products WHERE status = \'ativo\' ORDER BY name');

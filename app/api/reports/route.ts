@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser, RESTRICTED_USER_ID } from '@/lib/restricted-access';
 import { query } from '@/lib/db';
 
 const WEEKDAY_LABELS = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
@@ -49,9 +50,15 @@ export async function GET(request: Request) {
     const adminFilteringUser = asAdmin && filterUserIdParam != null && filterUserIdParam !== '';
     if (adminFilteringUser) {
       const paramUid = parseInt(filterUserIdParam!, 10);
-      if (Number.isFinite(paramUid)) uid = paramUid;
+      if (Number.isFinite(paramUid)) {
+        if (!canAdminAccessUser(userId, paramUid)) {
+          return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+        }
+        uid = paramUid;
+      }
     }
     const useFilteredQuery = !asAdmin || adminFilteringUser;
+    const excludeRestricted = asAdmin && !adminFilteringUser && !canAdminAccessUser(userId, RESTRICTED_USER_ID);
 
     const _searchParams = searchParams;
     const monthParam = _searchParams.get('month');
@@ -75,12 +82,15 @@ export async function GET(request: Request) {
     const toDt = `${toStr} 23:59:59`;
 
     const catalogPaid = `co.status IN ('pago','entregue')`;
-    const salesWhere = !useFilteredQuery ? 'created_at >= ? AND created_at <= ?' : 'user_id = ? AND created_at >= ? AND created_at <= ?';
+    const exclSales = excludeRestricted ? ` AND (user_id IS NULL OR user_id != ${RESTRICTED_USER_ID})` : '';
+    const exclS = excludeRestricted ? ` AND (s.user_id IS NULL OR s.user_id != ${RESTRICTED_USER_ID})` : '';
+    const exclP = excludeRestricted ? ` AND (p.user_id IS NULL OR p.user_id != ${RESTRICTED_USER_ID})` : '';
+    const salesWhere = !useFilteredQuery ? `created_at >= ? AND created_at <= ?${exclSales}` : 'user_id = ? AND created_at >= ? AND created_at <= ?';
     const pdvParams = !useFilteredQuery ? [fromDt, toDt] : [uid, fromDt, toDt];
-    const pdvJoinWhere = !useFilteredQuery ? 's.created_at >= ? AND s.created_at <= ?' : 's.user_id = ? AND s.created_at >= ? AND s.created_at <= ?';
-    const catProdWhere = !useFilteredQuery ? `${catalogPaid} AND co.created_at >= ? AND co.created_at <= ?` : `${catalogPaid} AND p.user_id = ? AND co.created_at >= ? AND co.created_at <= ?`;
+    const pdvJoinWhere = !useFilteredQuery ? `s.created_at >= ? AND s.created_at <= ?${exclS}` : 's.user_id = ? AND s.created_at >= ? AND s.created_at <= ?';
+    const catProdWhere = !useFilteredQuery ? `${catalogPaid} AND co.created_at >= ? AND co.created_at <= ?${exclP}` : `${catalogPaid} AND p.user_id = ? AND co.created_at >= ? AND co.created_at <= ?`;
     const catParams = !useFilteredQuery ? [fromDt, toDt] : [uid, fromDt, toDt];
-    const pdvProdWhere = !useFilteredQuery ? 's.created_at >= ? AND s.created_at <= ?' : 's.user_id = ? AND s.created_at >= ? AND s.created_at <= ? AND p.user_id = ?';
+    const pdvProdWhere = !useFilteredQuery ? `s.created_at >= ? AND s.created_at <= ?${exclS}${exclP}` : 's.user_id = ? AND s.created_at >= ? AND s.created_at <= ? AND p.user_id = ?';
     const pdvProdParams = !useFilteredQuery ? [fromDt, toDt] : [uid, fromDt, toDt, uid];
 
     const topRows = await query<Row[]>(
@@ -142,7 +152,7 @@ export async function GET(request: Request) {
     const receitaCatalog = Number((catRev as Row[])[0]?.v ?? 0);
     const receitaBruta = receitaPdv + receitaCatalog;
 
-    const cmvPdvWhere = !useFilteredQuery ? 's.created_at >= ? AND s.created_at <= ?' : 's.user_id = ? AND p.user_id = ? AND s.created_at >= ? AND s.created_at <= ?';
+    const cmvPdvWhere = !useFilteredQuery ? `s.created_at >= ? AND s.created_at <= ?${exclS}${exclP}` : 's.user_id = ? AND p.user_id = ? AND s.created_at >= ? AND s.created_at <= ?';
     const cmvPdvParams = !useFilteredQuery ? [fromDt, toDt] : [uid, uid, fromDt, toDt];
     const cmvPdv = await query<Row[]>(
       `SELECT COALESCE(SUM(si.quantity * COALESCE(p.cost_cmv, 0)), 0) AS v

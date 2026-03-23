@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser, RESTRICTED_USER_ID } from '@/lib/restricted-access';
 import { getCustomerSession, getCustomerSessionFromRequest } from '@/lib/customer-auth';
 import { query } from '@/lib/db';
 
@@ -65,8 +66,14 @@ export async function GET(request: Request) {
       whereClause = 'status = \'ativo\' AND user_id = ?';
       params = [uid];
     } else if (filterByParam && uidToFilter != null) {
+      if (!canAdminAccessUser(userId, uidToFilter)) {
+        return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+      }
       whereClause = 'status = \'ativo\' AND user_id = ?';
       params = [uidToFilter];
+    } else if (!scopePublic && isAdminSession(session) && !canAdminAccessUser(userId, RESTRICTED_USER_ID)) {
+      whereClause = 'status = \'ativo\' AND (user_id IS NULL OR user_id != ?)' + showInCatalogFilter;
+      params = [RESTRICTED_USER_ID];
     }
 
     const rows = await query<any[]>(

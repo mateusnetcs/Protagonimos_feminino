@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions, isAdminSession } from '@/lib/auth';
+import { canAdminAccessUser } from '@/lib/restricted-access';
 import { query } from '@/lib/db';
 import bcrypt from 'bcryptjs';
 
@@ -16,6 +17,9 @@ export async function PATCH(
     const { id } = await params;
     const userId = parseInt(id, 10);
     if (isNaN(userId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    if (!canAdminAccessUser((session.user as { id?: string })?.id, userId)) {
+      return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+    }
 
     const body = await _request.json();
     const email = body.email != null ? String(body.email).trim().toLowerCase() : undefined;
@@ -91,6 +95,9 @@ export async function DELETE(
     const { id } = await params;
     const userId = parseInt(id, 10);
     if (isNaN(userId)) return NextResponse.json({ error: 'ID inválido' }, { status: 400 });
+    if (!canAdminAccessUser((session.user as { id?: string })?.id, userId)) {
+      return NextResponse.json({ error: 'Acesso negado a este usuário.' }, { status: 403 });
+    }
 
     const currentUserId = (session.user as { id?: string }).id;
     if (currentUserId && String(userId) === String(currentUserId)) {
