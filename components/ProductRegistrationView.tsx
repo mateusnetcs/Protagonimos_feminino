@@ -23,6 +23,7 @@ type Product = {
   price_sale?: number;
   image_url?: string;
   show_in_catalog?: boolean | number;
+  barcode?: string | null;
 };
 
 type Props = {
@@ -58,6 +59,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
   const [costRaw, setCostRaw] = useState(formatVal(product?.cost_cmv ?? 0));
   const [priceRaw, setPriceRaw] = useState(formatVal(product?.price_sale ?? 0));
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? '');
+  const [barcode, setBarcode] = useState(product?.barcode ?? '');
   const [showInCatalog, setShowInCatalog] = useState(product?.show_in_catalog !== 0 && product?.show_in_catalog !== false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
@@ -76,6 +78,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
       setCostRaw(formatVal(product.cost_cmv ?? 0));
       setPriceRaw(formatVal(product.price_sale ?? 0));
       setImageUrl(product.image_url ?? '');
+      setBarcode(product.barcode ?? '');
       setShowInCatalog(product.show_in_catalog !== 0 && product.show_in_catalog !== false);
     }
   }, [product]);
@@ -125,6 +128,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
             cost_cmv: costCmv,
             price_sale: priceSale,
             image_url: imageUrl || null,
+            barcode: barcode.trim() || null,
             show_in_catalog: showInCatalog,
           }),
         });
@@ -145,6 +149,7 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
             cost_cmv: costCmv,
             price_sale: priceSale,
             image_url: imageUrl || null,
+            barcode: barcode.trim() || null,
             show_in_catalog: showInCatalog,
           }),
         });
@@ -179,6 +184,19 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
               className="w-full rounded-xl border border-slate-200 bg-slate-50 h-12 px-4"
               placeholder="Ex: Geleia Artesanal 250g"
             />
+          </label>
+          <label>
+            <span className="block text-sm font-bold text-slate-700 mb-2">Código de Barras (EAN)</span>
+            <input
+              type="text"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 h-12 px-4"
+              placeholder="Ex: 7891234567890"
+              maxLength={20}
+              inputMode="numeric"
+            />
+            <p className="text-xs text-slate-400 mt-1">Use leitor de código de barras ou digite. Essencial para vendas rápidas no PDV.</p>
           </label>
           <label>
             <span className="block text-sm font-bold text-slate-700 mb-2">Categoria</span>

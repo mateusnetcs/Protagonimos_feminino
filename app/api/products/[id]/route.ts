@@ -53,6 +53,10 @@ export async function PATCH(
       updates.push('show_in_catalog = ?');
       values.push(body.show_in_catalog ? 1 : 0);
     }
+    if (body.barcode !== undefined) {
+      updates.push('barcode = ?');
+      values.push(body.barcode?.trim() || null);
+    }
 
     if (updates.length === 0) {
       return NextResponse.json({ error: 'Nenhum campo para atualizar' }, { status: 400 });
@@ -122,7 +126,7 @@ export async function GET(
     const whereParams = uid != null && !isAdmin ? [id, uid] : [id];
 
     const rows = await query<any[]>(
-      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, show_in_catalog FROM products WHERE ${whereClause}`,
+      `SELECT id, name, category, description, stock_current, stock_min, cost_cmv, price_sale, image_url, show_in_catalog, barcode FROM products WHERE ${whereClause}`,
       whereParams
     );
     const data = Array.isArray(rows) ? rows : [rows];

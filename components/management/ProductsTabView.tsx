@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'motion/react';
-import { Eye, Package, Trash2 } from 'lucide-react';
+import { Eye, FileText, Package, Trash2 } from 'lucide-react';
 
 export type ManagementProductRow = {
   id: string;
@@ -15,12 +15,14 @@ export type ManagementProductRow = {
   price_sale?: number;
   image_url?: string;
   show_in_catalog?: boolean | number;
+  barcode?: string | null;
 };
 
 export type ProductsTabViewProps = {
   products: ManagementProductRow[];
   productsLoading: boolean;
   onAdd: () => void;
+  onImportNota?: () => void;
   onEdit: (product: ManagementProductRow) => void;
   onDelete: (product: ManagementProductRow) => void;
   onToggleShowInCatalog?: (product: ManagementProductRow, show: boolean) => void;
@@ -30,6 +32,7 @@ export default function ProductsTabView({
   products,
   productsLoading,
   onAdd,
+  onImportNota,
   onEdit,
   onDelete,
   onToggleShowInCatalog,
@@ -48,14 +51,26 @@ export default function ProductsTabView({
           </h2>
           <p className="text-slate-500 text-sm mt-1">{products.length} produto(s) cadastrado(s)</p>
         </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl font-bold hover:bg-primary/90 shadow-lg shadow-primary/20 shrink-0"
-        >
-          <Package size={20} />
-          Cadastrar Produto
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {onImportNota && (
+            <button
+              type="button"
+              onClick={onImportNota}
+              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold border border-slate-200 transition-colors"
+            >
+              <FileText size={20} />
+              Importa Nota
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onAdd}
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl font-bold hover:bg-primary/90 shadow-lg shadow-primary/20"
+          >
+            <Package size={20} />
+            Cadastrar Produto
+          </button>
+        </div>
       </div>
       <div className="overflow-x-auto">
         {productsLoading ? (

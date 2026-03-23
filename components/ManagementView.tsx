@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Package,
   RefreshCw,
+  Search,
   Settings,
   ShoppingBag,
   Users,
@@ -25,8 +26,10 @@ import ReportsView from './ReportsView';
 import PDVView from './pdv/PDVView';
 import ResponsesView from './management/ResponsesView';
 import ProductsTabView from './management/ProductsTabView';
+import ImportNotaView from './management/ImportNotaView';
 import CatalogManagementTab from './management/CatalogManagementTab';
 import UsersTabView from './management/UsersTabView';
+import CommandBar, { type CommandAction } from './CommandBar';
 
 type ManagementViewProps = {
   onBack: () => void;
@@ -67,9 +70,61 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
     if (!isAdmin && activeTab === 'responses') setActiveTab('catalogo');
   }, [isAdmin, activeTab]);
   const [showProductForm, setShowProductForm] = useState(false);
+  const [showImportNota, setShowImportNota] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ManagementProductRow | null>(null);
   const [products, setProducts] = useState<ManagementProductRow[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
+  const [commandBarOpen, setCommandBarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setCommandBarOpen((v) => !v);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut({ redirect: false });
+      onBack();
+    } catch (err) {
+      console.error('Logout error:', err);
+      onBack();
+    }
+  }, [onBack]);
+
+  const handleCommandAction = useCallback((result: CommandAction) => {
+    switch (result.action) {
+      case 'open_tab': {
+        const tab = result.params?.tab as TabId;
+        if (tab && VALID_TABS.includes(tab)) {
+          if (tab === 'responses' && !isAdmin) return;
+          setActiveTab(tab);
+        }
+        break;
+      }
+      case 'add_product':
+        setEditingProduct(null);
+        setShowProductForm(true);
+        setActiveTab('produtos');
+        break;
+      case 'open_responses':
+        setActiveTab('responses');
+        break;
+      case 'open_relatorios':
+        setActiveTab('relatorios');
+        break;
+      case 'logout':
+        void handleLogout();
+        break;
+      default:
+        break;
+    }
+  }, [isAdmin, handleLogout]);
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -91,16 +146,6 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut({ redirect: false });
-      onBack();
-    } catch (err) {
-      console.error('Logout error:', err);
-      onBack();
     }
   };
 
@@ -207,6 +252,15 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             </div>
           )}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCommandBarOpen(true)}
+              className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg border border-slate-200 transition-all text-slate-600"
+              title="Buscar comando (Ctrl+K)"
+            >
+              <Search size={18} />
+              <span className="hidden sm:inline">Buscar</span>
+              <kbd className="hidden md:inline px-1.5 py-0.5 rounded bg-white text-xs font-mono border border-slate-200">⌘K</kbd>
+            </button>
             <button
               onClick={fetchResponses}
               className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border border-slate-200 hover:border-primary transition-all shadow-sm"
@@ -361,7 +415,17 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         ) : activeTab === 'usuarios' ? (
           <UsersTabView />
         ) : activeTab === 'produtos' ? (
-          showProductForm ? (
+          showImportNota ? (
+            <ImportNotaView
+              onBack={() => setShowImportNota(false)}
+              onSuccess={() => {
+                setShowImportNota(false);
+                fetchProducts();
+              }}
+              products={products.map((p) => ({ id: p.id, name: p.name, price_sale: p.price_sale }))}
+              userId={isAdmin && selectedUserId ? selectedUserId : (session?.user as { id?: string })?.id}
+            />
+          ) : showProductForm ? (
             <ProductRegistrationView
               product={editingProduct}
               onBack={() => {
@@ -382,6 +446,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
                 setEditingProduct(null);
                 setShowProductForm(true);
               }}
+              onImportNota={() => setShowImportNota(true)}
               onEdit={(p) => {
                 setEditingProduct(p);
                 setShowProductForm(true);
@@ -434,6 +499,13 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             userId={selectedUserId && isAdmin ? selectedUserId : (session?.user as { id?: string })?.id}
           />
         )}
+
+        <CommandBar
+          open={commandBarOpen}
+          onClose={() => setCommandBarOpen(false)}
+          onAction={handleCommandAction}
+          isAdmin={isAdmin}
+        />
       </div>
     </div>
   );

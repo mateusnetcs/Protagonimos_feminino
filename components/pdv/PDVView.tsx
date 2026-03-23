@@ -16,6 +16,7 @@ type PDVProduct = {
   category: PDVCategory;
   imageUrl: string;
   stockCurrent?: number;
+  barcode?: string | null;
 };
 
 type PDVCartItem = {
@@ -139,7 +140,7 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
     setPdvProductsLoading(true);
     fetch('/api/products')
       .then((r) => r.json())
-      .then((data: { id: string; name: string; category: string; description?: string; price_sale: number; image_url?: string; stock_current?: number }[]) => {
+        .then((data: { id: string; name: string; category: string; description?: string; price_sale: number; image_url?: string; stock_current?: number; barcode?: string | null }[]) => {
         if (Array.isArray(data)) {
           setPdvProducts(
             data.map((p) => ({
@@ -151,6 +152,7 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
               category: (p.category || 'Outros') as PDVCategory,
               imageUrl: p.image_url || '',
               stockCurrent: Number(p.stock_current ?? 0),
+              barcode: p.barcode || null,
             }))
           );
         } else {
@@ -300,6 +302,26 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
       }
       return [...prev, { productId, quantity: 1 }];
     });
+  };
+
+  const addToCartByBarcode = (rawBarcode: string) => {
+    const code = String(rawBarcode || '').replace(/\D/g, '');
+    if (code.length < 8) return false;
+    const product = products.find((p) => p.barcode && String(p.barcode).replace(/\D/g, '') === code);
+    if (product) {
+      addToCart(product.id);
+      return true;
+    }
+    return false;
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    const v = (e.target as HTMLInputElement).value;
+    const digitsOnly = v.replace(/\D/g, '');
+    if (digitsOnly.length >= 8 && addToCartByBarcode(v)) {
+      setSearch('');
+    }
   };
 
   const updateQuantity = (productId: string, delta: number) => {
@@ -1430,10 +1452,11 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
               </div>
               <input
                 type="text"
-                placeholder="Buscar produtos ou código..."
+                placeholder="Buscar produtos ou passar código de barras..."
                 className="block w-full pl-11 pr-4 py-3 bg-white border-none rounded-xl focus:ring-2 focus:ring-primary shadow-sm text-sm placeholder:text-slate-400"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
               />
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
@@ -1654,10 +1677,11 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
                 </span>
                 <input
                   type="search"
-                  placeholder="Buscar produtos..."
+                  placeholder="Buscar produtos ou passar código de barras..."
                   className="w-full pl-10 pr-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/40 focus:border-primary/30 outline-none"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                 />
               </div>
             </div>
