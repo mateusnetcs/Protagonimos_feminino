@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   ArrowLeft,
   BarChart3,
@@ -41,7 +41,18 @@ type TabId = (typeof VALID_TABS)[number];
 export default function ManagementView({ onBack }: ManagementViewProps) {
   const { data: session } = useSession();
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const goToTab = useCallback(
+    (tab: TabId) => {
+      const params = new URLSearchParams(searchParams?.toString() || '');
+      params.set('tab', tab);
+      router.push(`${pathname || '/'}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, searchParams]
+  );
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +68,11 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
     const tab = searchParams.get('tab');
     if (tab && VALID_TABS.includes(tab as TabId)) {
       const t = tab as TabId;
-      if (t === 'responses' && !isAdmin) return;
-      setActiveTab(t);
+      if (t === 'responses' && !isAdmin) {
+        setActiveTab('catalogo');
+      } else {
+        setActiveTab(t);
+      }
     }
     if (searchParams.get('mp_connected') === '1') {
       setMpConnectedToast(true);
@@ -103,20 +117,20 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         const tab = result.params?.tab as TabId;
         if (tab && VALID_TABS.includes(tab)) {
           if (tab === 'responses' && !isAdmin) return;
-          setActiveTab(tab);
+          goToTab(tab);
         }
         break;
       }
       case 'add_product':
         setEditingProduct(null);
         setShowProductForm(true);
-        setActiveTab('produtos');
+        goToTab('produtos');
         break;
       case 'open_responses':
-        setActiveTab('responses');
+        goToTab('responses');
         break;
       case 'open_relatorios':
-        setActiveTab('relatorios');
+        goToTab('relatorios');
         break;
       case 'logout':
         void handleLogout();
@@ -124,7 +138,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
       default:
         break;
     }
-  }, [isAdmin, handleLogout]);
+  }, [isAdmin, handleLogout, goToTab]);
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -288,7 +302,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         <div className="flex flex-nowrap gap-1.5 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 overflow-x-auto">
           {isAdmin && (
             <button
-              onClick={() => setActiveTab('responses')}
+              onClick={() => goToTab('responses')}
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
                 activeTab === 'responses'
                   ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -300,7 +314,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             </button>
           )}
           <button
-            onClick={() => setActiveTab('catalogo')}
+            onClick={() => goToTab('catalogo')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'catalogo'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -311,7 +325,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             Catálogo
           </button>
           <button
-            onClick={() => setActiveTab('pdv')}
+            onClick={() => goToTab('pdv')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'pdv'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -322,7 +336,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             PDV
           </button>
           <button
-            onClick={() => setActiveTab('produtos')}
+            onClick={() => goToTab('produtos')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'produtos'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -333,7 +347,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             Produtos
           </button>
           <button
-            onClick={() => setActiveTab('post')}
+            onClick={() => goToTab('post')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'post'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -344,7 +358,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             Post
           </button>
           <button
-            onClick={() => setActiveTab('galeria')}
+            onClick={() => goToTab('galeria')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'galeria'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -355,7 +369,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             Galeria
           </button>
           <button
-            onClick={() => setActiveTab('relatorios')}
+            onClick={() => goToTab('relatorios')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'relatorios'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -367,7 +381,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
           </button>
           {isAdmin && (
             <button
-              onClick={() => setActiveTab('usuarios')}
+              onClick={() => goToTab('usuarios')}
               className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
                 activeTab === 'usuarios'
                   ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -379,7 +393,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             </button>
           )}
           <button
-            onClick={() => setActiveTab('configuracao')}
+            onClick={() => goToTab('configuracao')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'configuracao'
                 ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -408,7 +422,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         ) : activeTab === 'pdv' ? (
           <PDVView />
         ) : activeTab === 'configuracao' ? (
-          <PDVView initialSettingsOpen configOnly onCloseConfig={() => setActiveTab('pdv')} />
+          <PDVView initialSettingsOpen configOnly onCloseConfig={() => goToTab('pdv')} />
         ) : activeTab === 'post' ? (
           <PostGeneratorView
             products={products}
