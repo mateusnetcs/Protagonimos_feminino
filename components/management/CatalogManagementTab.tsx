@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Copy, Check, Link2, OpenInNew } from 'lucide-react';
+import { Copy, Check, Link2, ExternalLink } from 'lucide-react';
 import CatalogView from '../CatalogView';
 import type { ManagementProductRow } from './ProductsTabView';
 
@@ -55,7 +55,7 @@ export default function CatalogManagementTab({
               </>
             ) : (
               <>
-                <OpenInNew size={16} />
+                <ExternalLink size={16} />
                 Catálogo geral (todos os produtos)
               </>
             )}

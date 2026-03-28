@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Loader2 } from 'lucide-react';
@@ -77,20 +77,14 @@ export default function Page() {
           </motion.div>
         )}
         {view === 'management' && (
-          <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center bg-slate-50">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
-          }>
-            <motion.div
-              key="management"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              <ManagementView onBack={() => setView('landing')} />
-            </motion.div>
-          </Suspense>
+          <motion.div
+            key="management"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+          >
+            <ManagementView onBack={() => setView('landing')} />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

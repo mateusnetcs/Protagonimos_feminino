@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   ArrowLeft,
   BarChart3,
@@ -38,21 +38,20 @@ type ManagementViewProps = {
 const VALID_TABS = ['responses', 'catalogo', 'pdv', 'produtos', 'post', 'galeria', 'relatorios', 'usuarios', 'configuracao'] as const;
 type TabId = (typeof VALID_TABS)[number];
 
+function parseTabFromSearch(search: string, isAdminUser: boolean): TabId | null {
+  const tab = new URLSearchParams(search).get('tab');
+  if (!tab || !VALID_TABS.includes(tab as TabId)) return null;
+  const t = tab as TabId;
+  if (t === 'responses' && !isAdminUser) return 'catalogo';
+  return t;
+}
+
 export default function ManagementView({ onBack }: ManagementViewProps) {
   const { data: session } = useSession();
   const isAdmin = (session?.user as { role?: string })?.role === 'admin';
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const goToTab = useCallback(
-    (tab: TabId) => {
-      const params = new URLSearchParams(searchParams?.toString() || '');
-      params.set('tab', tab);
-      router.push(`${pathname || '/'}?${params.toString()}`, { scroll: false });
-    },
-    [router, pathname, searchParams]
-  );
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,21 +63,36 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
   const [users, setUsers] = useState<{ id: string; name: string | null; email: string }[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
 
+  const goToTab = useCallback(
+    (tab: TabId) => {
+      if (tab === 'responses' && !isAdmin) return;
+      const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+      params.set('tab', tab);
+      setActiveTab(tab);
+      router.push(`${pathname || '/'}?${params.toString()}`, { scroll: false });
+    },
+    [router, pathname, isAdmin]
+  );
+
+  /** Sincroniza aba com ?tab= na URL (sem useSearchParams — evita travamento no SSR do Next.js 15) */
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab && VALID_TABS.includes(tab as TabId)) {
-      const t = tab as TabId;
-      if (t === 'responses' && !isAdmin) {
-        setActiveTab('catalogo');
-      } else {
-        setActiveTab(t);
-      }
-    }
-    if (searchParams.get('mp_connected') === '1') {
+    const syncFromUrl = () => {
+      const t = parseTabFromSearch(window.location.search, isAdmin);
+      if (t) setActiveTab(t);
+    };
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (new URLSearchParams(window.location.search).get('mp_connected') === '1') {
       setMpConnectedToast(true);
-      setTimeout(() => setMpConnectedToast(false), 5000);
+      const id = window.setTimeout(() => setMpConnectedToast(false), 5000);
+      return () => window.clearTimeout(id);
     }
-  }, [searchParams, isAdmin]);
+  }, []);
 
   useEffect(() => {
     if (!isAdmin && activeTab === 'responses') setActiveTab('catalogo');
