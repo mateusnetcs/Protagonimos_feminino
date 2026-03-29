@@ -1,7 +1,15 @@
 /**
- * Cria o usuário admin no MySQL.
- * Execute: npm run db:seed
- * Credenciais: admin@adm / 123123
+ * Cria ou atualiza o usuário admin no MySQL (inclui redefinir senha).
+ *
+ * Uso:
+ *   npm run db:seed
+ *   → admin@adm / 123123 (padrão)
+ *
+ * Senha personalizada (PowerShell):
+ *   $env:ADMIN_PASSWORD="suaSenhaSegura"; $env:ADMIN_EMAIL="seu@email.com"; npm run db:seed
+ *
+ * CMD:
+ *   set ADMIN_PASSWORD=suaSenhaSegura && set ADMIN_EMAIL=seu@email.com && npm run db:seed
  */
 
 if (!process.env.MYSQL_PASSWORD) {
@@ -10,9 +18,9 @@ if (!process.env.MYSQL_PASSWORD) {
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 
-const EMAIL = 'admin@adm';
-const PASSWORD = '123123';
-const NAME = 'Admin Inovação';
+const EMAIL = process.env.ADMIN_EMAIL || 'admin@adm';
+const PASSWORD = process.env.ADMIN_PASSWORD || '123123';
+const NAME = process.env.ADMIN_NAME || 'Admin Inovação';
 
 async function main() {
   const host = process.env.MYSQL_HOST || 'localhost';

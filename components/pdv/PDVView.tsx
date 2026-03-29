@@ -1194,7 +1194,7 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
 
       <AnimatePresence>
         {showPaymentModal && (
-          <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-[300] flex flex-col">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1203,11 +1203,11 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, y: 100 }}
+              initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 100 }}
+              exit={{ opacity: 0, y: 24 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative bg-slate-100 w-full sm:max-w-4xl rounded-t-2xl sm:rounded-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden"
+              className="relative bg-slate-100 w-full h-full min-h-0 flex flex-col overflow-hidden shadow-2xl"
             >
               {/* Overlay de sucesso PIX: animação + som */}
               {pixPaymentSuccessPhase !== 'none' && (
@@ -1215,7 +1215,7 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-10 flex items-center justify-center bg-white/95 backdrop-blur-sm rounded-t-2xl sm:rounded-2xl"
+                  className="absolute inset-0 z-10 flex items-center justify-center bg-white/95 backdrop-blur-sm"
                 >
                   <div className="flex flex-col items-center gap-4">
                     {pixPaymentSuccessPhase === 'processing' ? (
@@ -1292,8 +1292,8 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto flex flex-col sm:flex-row min-h-0">
-                <div className="flex-1 p-4 sm:p-6 space-y-3 min-w-0">
+              <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row min-h-0">
+                <div className="flex-1 p-4 sm:p-6 lg:p-8 space-y-3 min-w-0">
                   <div className="space-y-3">
                     {[
                       { key: 'dinheiro' as const, label: '1 - Dinheiro', icon: 'payments', shortcut: 'F1' },
@@ -1341,18 +1341,22 @@ export default function PDVView({ initialSettingsOpen, configOnly, onCloseConfig
                   )}
                 </div>
 
-                <div className="sm:w-80 shrink-0 flex flex-col gap-4 p-4 sm:p-6 border-t sm:border-t-0 sm:border-l border-slate-200 bg-white">
-                  <div className="rounded-xl border border-slate-200 p-4 flex flex-col items-center">
-                    <h4 className="text-sm font-bold text-slate-900 mb-3">Pagar com PIX</h4>
+                <div className="lg:w-[min(100%,28rem)] xl:w-[min(100%,32rem)] shrink-0 flex flex-col gap-4 p-4 sm:p-6 lg:p-8 border-t lg:border-t-0 lg:border-l border-slate-200 bg-white">
+                  <div className="rounded-xl border border-slate-200 p-4 sm:p-6 flex flex-col items-center">
+                    <h4 className="text-base font-bold text-slate-900 mb-4">Pagar com PIX</h4>
                     {pixAmount > 0 && (pixChave || mpConnected || pixConfig) ? (
                       (pixPayload || mpPixData) ? (
-                        <div className="flex flex-col items-center gap-2">
+                        <div className="flex flex-col items-center gap-3 w-full">
                           {mpPixData?.qr_code_base64 ? (
-                            <img src={`data:image/png;base64,${mpPixData.qr_code_base64}`} alt="QR PIX" className="w-40 h-40 object-contain" />
+                            <img
+                              src={`data:image/png;base64,${mpPixData.qr_code_base64}`}
+                              alt="QR PIX"
+                              className="w-[min(88vw,320px)] h-[min(88vw,320px)] object-contain"
+                            />
                           ) : (mpPixData?.qr_code || pixPayload) ? (
-                            <QRCodeSVG value={mpPixData?.qr_code || pixPayload || ''} size={160} level="M" />
+                            <QRCodeSVG value={mpPixData?.qr_code || pixPayload || ''} size={300} level="M" />
                           ) : null}
-                          <p className="text-xs text-slate-500 text-center">{formatPrice(pixAmount)}</p>
+                          <p className="text-sm font-bold text-slate-700 text-center">{formatPrice(pixAmount)}</p>
                         </div>
                       ) : (
                         <p className="text-sm text-amber-600 py-4">{mpPixLoading ? 'Gerando…' : 'Aguarde…'}</p>
