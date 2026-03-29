@@ -1,22 +1,35 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+function isLoopbackHost(host: string) {
+  return (
+    host.includes('localhost') ||
+    host.startsWith('127.0.0.1') ||
+    host.startsWith('[::1]')
+  );
+}
+
 /**
  * Redireciona HTTP para HTTPS em produção.
  * O Coolify/Traefik passa x-forwarded-proto quando o usuário acessa via HTTPS.
- * Se acessar via HTTP, redirecionamos para HTTPS.
+ *
+ * Health checks internos costumam ser HTTP sem X-Forwarded-For; redirecionar
+ * nesses casos quebra o probe e pode levar a 502/504 no gateway.
  */
 export function middleware(request: NextRequest) {
   const host = request.headers.get('host') || request.nextUrl.host;
-  const proto = request.headers.get('x-forwarded-proto');
+  const protoHeader = request.headers.get('x-forwarded-proto');
+  const proto = protoHeader?.split(',')[0]?.trim();
 
-  // Em desenvolvimento (localhost), não redirecionar
-  if (host?.includes('localhost') || host?.startsWith('127.0.0.1')) {
+  if (isLoopbackHost(host)) {
     return NextResponse.next();
   }
 
-  // Se o proxy indica que a requisição original foi HTTP, redirecionar para HTTPS
-  if (proto === 'http') {
+  const hasEdgeClientHint =
+    Boolean(request.headers.get('x-forwarded-for')) ||
+    Boolean(request.headers.get('x-real-ip'));
+
+  if (proto === 'http' && hasEdgeClientHint) {
     const url = request.nextUrl.clone();
     url.protocol = 'https:';
     return NextResponse.redirect(url, 301);
@@ -28,11 +41,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico
+     * Exclui API (NextAuth, health), assets e favicon — menos risco de redirect
+     * indevido em chamadas internas e probes.
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
