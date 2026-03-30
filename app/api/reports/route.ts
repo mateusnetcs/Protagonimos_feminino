@@ -136,6 +136,39 @@ export async function GET(request: Request) {
       revenue: Number(r.revenue),
     }));
 
+    const catTopRows = await query<Row[]>(
+      `SELECT coi.product_id, SUM(coi.quantity) AS quantity_sold, SUM(coi.quantity * coi.unit_price) AS revenue
+       FROM catalog_order_items coi
+       INNER JOIN catalog_orders co ON co.id = coi.order_id
+       INNER JOIN products p ON p.id = coi.product_id
+       WHERE ${catProdWhere}
+       GROUP BY coi.product_id
+       ORDER BY quantity_sold DESC
+       LIMIT 20`,
+      catParams
+    );
+    const catProductIds = (Array.isArray(catTopRows) ? catTopRows : [])
+      .map((r) => r.product_id)
+      .filter(Boolean);
+    let catNames: Record<number, string> = { ...names };
+    const missingCatNames = catProductIds.filter((id) => !catNames[Number(id)]);
+    if (missingCatNames.length) {
+      const ph = missingCatNames.map(() => '?').join(',');
+      const cnRows = await query<Row[]>(
+        `SELECT id, name FROM products WHERE id IN (${ph})`,
+        missingCatNames as number[]
+      );
+      for (const r of Array.isArray(cnRows) ? cnRows : []) {
+        catNames[Number(r.id)] = String(r.name);
+      }
+    }
+    const catalogTopProducts = (Array.isArray(catTopRows) ? catTopRows : []).map((r) => ({
+      product_id: Number(r.product_id),
+      name: catNames[Number(r.product_id)] || `Produto #${r.product_id}`,
+      quantity_sold: Number(r.quantity_sold),
+      revenue: Number(r.revenue),
+    }));
+
     const pdvRev = await query<Row[]>(
       `SELECT COALESCE(SUM(total), 0) AS v FROM sales WHERE ${salesWhere}`,
       pdvParams
@@ -151,6 +184,16 @@ export async function GET(request: Request) {
     const receitaPdv = Number((pdvRev as Row[])[0]?.v ?? 0);
     const receitaCatalog = Number((catRev as Row[])[0]?.v ?? 0);
     const receitaBruta = receitaPdv + receitaCatalog;
+
+    const catOrdersRow = await query<Row[]>(
+      `SELECT COUNT(DISTINCT co.id) AS c
+       FROM catalog_order_items coi
+       INNER JOIN catalog_orders co ON co.id = coi.order_id
+       INNER JOIN products p ON p.id = coi.product_id
+       WHERE ${catProdWhere}`,
+      catParams
+    );
+    const catalogPedidosPagos = Number((catOrdersRow as Row[])[0]?.c ?? 0);
 
     const cmvPdvWhere = !useFilteredQuery ? `s.created_at >= ? AND s.created_at <= ?${exclS}${exclP}` : 's.user_id = ? AND p.user_id = ? AND s.created_at >= ? AND s.created_at <= ?';
     const cmvPdvParams = !useFilteredQuery ? [fromDt, toDt] : [uid, uid, fromDt, toDt];
@@ -170,7 +213,9 @@ export async function GET(request: Request) {
        WHERE ${catProdWhere}`,
       catParams
     );
-    const cmv = Number((cmvPdv as Row[])[0]?.v ?? 0) + Number((cmvCat as Row[])[0]?.v ?? 0);
+    const cmvPdvVal = Number((cmvPdv as Row[])[0]?.v ?? 0);
+    const cmvCatVal = Number((cmvCat as Row[])[0]?.v ?? 0);
+    const cmv = cmvPdvVal + cmvCatVal;
     const lucroBruto = receitaBruta - cmv;
     const despesasOperacionais = 0;
     const resultadoLiquido = lucroBruto - despesasOperacionais;
@@ -269,6 +314,50 @@ export async function GET(request: Request) {
     const bestWeekOfPeriod =
       byWeekOfPeriod.length > 0 ? [...byWeekOfPeriod].sort((a, b) => b.total - a.total)[0] : null;
 
+    const catalogSalesByWeekday = [0, 1, 2, 3, 4, 5, 6].map((wd) => {
+      const row = (Array.isArray(catByWd) ? catByWd : []).find((r) => Number(r.wd) === wd);
+      return {
+        weekday: wd,
+        label: WEEKDAY_LABELS[wd],
+        total: row ? Number(row.total) : 0,
+        count: row ? Number(row.cnt) : 0,
+      };
+    });
+    const bestWeekdayCat = [...catalogSalesByWeekday].sort((a, b) => b.total - a.total)[0];
+
+    const catDayMapOnly = new Map<string, number>();
+    for (const r of Array.isArray(catByDay) ? catByDay : []) {
+      const key = String(r.d).slice(0, 10);
+      catDayMapOnly.set(key, (catDayMapOnly.get(key) ?? 0) + Number(r.total));
+    }
+    const catalogDailyTotals = [...catDayMapOnly.entries()]
+      .map(([date, total]) => ({ date, total }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const bestDayCat = catalogDailyTotals.length
+      ? [...catalogDailyTotals].sort((a, b) => b.total - a.total)[0]
+      : null;
+
+    const catWkMapOnly = new Map<number, { total: number; count: number }>();
+    for (const r of Array.isArray(catByWeekOfMonth) ? catByWeekOfMonth : []) {
+      const wk = Number(r.wk);
+      const prev = catWkMapOnly.get(wk) || { total: 0, count: 0 };
+      catWkMapOnly.set(wk, { total: prev.total + Number(r.total), count: prev.count + Number(r.cnt) });
+    }
+    const catalogByWeekOfPeriod = [1, 2, 3, 4, 5, 6]
+      .map((wk) => ({
+        week: wk,
+        label: `${wk}ª semana`,
+        total: catWkMapOnly.get(wk)?.total ?? 0,
+        count: catWkMapOnly.get(wk)?.count ?? 0,
+      }))
+      .filter((x) => x.total > 0 || x.count > 0);
+    const bestWeekOfPeriodCat =
+      catalogByWeekOfPeriod.length > 0
+        ? [...catalogByWeekOfPeriod].sort((a, b) => b.total - a.total)[0]
+        : null;
+
+    const lucroCatalogo = receitaCatalog - cmvCatVal;
+
     return NextResponse.json({
       period: { from: fromStr, to: toStr },
       topProducts,
@@ -276,10 +365,30 @@ export async function GET(request: Request) {
         receita_pdv: receitaPdv,
         receita_catalogo: receitaCatalog,
         receita_bruta: receitaBruta,
+        cmv_pdv: cmvPdvVal,
+        cmv_catalogo: cmvCatVal,
         cmv,
         lucro_bruto: lucroBruto,
         despesas_operacionais: despesasOperacionais,
         resultado_liquido: resultadoLiquido,
+      },
+      catalog_report: {
+        period: { from: fromStr, to: toStr },
+        pedidos_pagos: catalogPedidosPagos,
+        receita: receitaCatalog,
+        cmv: cmvCatVal,
+        lucro_bruto: lucroCatalogo,
+        participacao_receita_total_pct:
+          receitaBruta > 0 ? Math.round((receitaCatalog / receitaBruta) * 10000) / 100 : 0,
+        topProducts: catalogTopProducts,
+        salesByWeekday: catalogSalesByWeekday,
+        dailyTotals: catalogDailyTotals,
+        byWeekOfPeriod: catalogByWeekOfPeriod,
+        highlights: {
+          best_weekday: bestWeekdayCat,
+          best_day: bestDayCat,
+          best_week_of_period: bestWeekOfPeriodCat,
+        },
       },
       salesByWeekday,
       highlights: {
