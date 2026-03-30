@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "clean:next": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true}); console.log('.next removido');\"",
+    "dev:fresh": "npm run clean:next && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "clean": "next clean",
+    "clean": "npm run clean:next",
     "db:setup": "node scripts/setup-database.js",
     "db:seed": "node scripts/seed-admin.js",
     "db:migrate-catalog": "node scripts/migrate-catalog-tables.js",
