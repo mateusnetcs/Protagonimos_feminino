@@ -46,9 +46,9 @@ export default function LoginView({ onLoginSuccess, onBack }: LoginViewProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full max-w-[100vw] flex flex-col lg:flex-row overflow-x-hidden">
       {/* Painel esquerdo - Brand & Visual */}
-      <div className="relative lg:w-1/2 min-h-[220px] lg:min-h-screen bg-gradient-to-br from-primary via-primary to-amber-600 overflow-hidden flex items-center justify-center p-8 lg:p-16">
+      <div className="relative w-full lg:w-1/2 lg:max-w-[50%] min-h-[220px] lg:min-h-screen shrink-0 bg-gradient-to-br from-primary via-primary to-amber-600 overflow-hidden flex items-center justify-center p-8 lg:p-16">
         {/* Formas decorativas */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
@@ -93,12 +93,12 @@ export default function LoginView({ onLoginSuccess, onBack }: LoginViewProps) {
       </div>
 
       {/* Painel direito - Formulário */}
-      <div className="relative lg:w-1/2 flex items-center justify-center p-6 lg:p-12 bg-background-light">
+      <div className="relative w-full lg:w-1/2 lg:max-w-[50%] min-w-0 flex-1 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background-light">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="w-full max-w-md"
+          className="w-full max-w-md mx-auto"
         >
           {/* Card mobile: mostra branding compacto */}
           <div className="lg:hidden text-center mb-8">

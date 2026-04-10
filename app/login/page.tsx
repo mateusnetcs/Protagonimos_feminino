@@ -18,8 +18,8 @@ export default function LoginPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" aria-label="Carregando" />
       </div>
     );
   }
@@ -28,6 +28,7 @@ export default function LoginPage() {
     return null;
   }
 
+  /* LoginView é tela cheia em duas colunas — não usar max-w-* no wrapper (quebrava o layout). */
   return (
     <LoginView
       onLoginSuccess={() => router.push('/')}
