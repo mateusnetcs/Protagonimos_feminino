@@ -1,11 +1,3 @@
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/8fb86949-0852-4871-bf3a-5e869baae503
-
-## Run Locally
-
 **Prerequisites:** Node.js + MySQL
 
 1. Instale as dependências: `npm install`
