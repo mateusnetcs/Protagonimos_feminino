@@ -3,6 +3,14 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   staticPageGenerationTimeout: 120,
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/uploads/:path*',
+      },
+    ];
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

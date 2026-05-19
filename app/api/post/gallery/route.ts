@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { query, getPool } from '@/lib/db';
 import { expandGalleryItems } from '@/lib/post-gallery-utils';
+import { resolveUploadUrl } from '@/lib/resolve-upload-url';
 import { persistPostImage, persistPostImages } from '@/lib/persist-post-image';
 
 export async function GET() {
@@ -30,7 +31,10 @@ export async function GET() {
       [userId]
     );
     const items = Array.isArray(rows) ? rows : [rows].filter(Boolean);
-    const cards = expandGalleryItems(items);
+    const cards = expandGalleryItems(items).map((card) => ({
+      ...card,
+      image_url: resolveUploadUrl(card.image_url),
+    }));
     return NextResponse.json({ items, cards });
   } catch (err) {
     console.error('Gallery list error:', err);

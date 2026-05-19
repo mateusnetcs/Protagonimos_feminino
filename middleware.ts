@@ -44,6 +44,6 @@ export const config = {
      * Exclui API (NextAuth, health), assets e favicon — menos risco de redirect
      * indevido em chamadas internas e probes.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads).*)',
   ],
 };

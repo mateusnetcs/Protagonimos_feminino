@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import type { GalleryDisplayCard } from '@/lib/post-gallery-utils';
 import { expandGalleryItems } from '@/lib/post-gallery-utils';
+import { resolveUploadUrl } from '@/lib/resolve-upload-url';
 
 type GalleryItem = {
   id: number;
@@ -105,7 +106,7 @@ export default function GalleryView() {
                     className="block w-full aspect-square overflow-hidden bg-slate-200"
                   >
                     <img
-                      src={card.image_url}
+                      src={resolveUploadUrl(card.image_url)}
                       alt={card.product_name || 'Post'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       onError={(e) => {
@@ -166,7 +167,7 @@ export default function GalleryView() {
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               <img
-                src={selected.image_url}
+                src={resolveUploadUrl(selected.image_url)}
                 alt=""
                 className="w-full rounded-xl border border-slate-200 mb-4"
               />
@@ -184,7 +185,7 @@ export default function GalleryView() {
                 </div>
               )}
               <a
-                href={selected.image_url}
+                href={resolveUploadUrl(selected.image_url)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-block text-sm text-primary font-semibold hover:underline"
