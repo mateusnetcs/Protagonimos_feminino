@@ -27,10 +27,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    await query(
-      'UPDATE catalog_orders SET status = ? WHERE payment_id = ?',
-      ['pago', paymentId]
-    );
+    const extRef = payment.external_reference;
+    if (extRef && /^\d+$/.test(String(extRef))) {
+      await query(
+        `UPDATE catalog_orders SET status = 'pago', fulfillment_status = 'confirmado', payment_id = ? WHERE id = ?`,
+        [paymentId, Number(extRef)]
+      );
+    } else {
+      await query(
+        `UPDATE catalog_orders SET status = 'pago', fulfillment_status = 'confirmado' WHERE payment_id = ? OR payment_id LIKE ?`,
+        [paymentId, `%${paymentId}%`]
+      );
+    }
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: true });

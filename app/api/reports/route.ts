@@ -19,6 +19,26 @@ function addDays(d: Date, n: number): Date {
   return x;
 }
 
+/** Normaliza DATE do MySQL (Date object ou string) para YYYY-MM-DD */
+function toDateKey(value: unknown): string {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    const y = value.getFullYear();
+    const m = String(value.getMonth() + 1).padStart(2, '0');
+    const d = String(value.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  const s = String(value ?? '');
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const parsed = new Date(s);
+  if (!Number.isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+    const d = String(parsed.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return '';
+}
+
 function monthBounds(ym: string): { from: string; to: string } | null {
   const m = ym.match(/^(\d{4})-(\d{2})$/);
   if (!m) return null;
@@ -270,7 +290,8 @@ export async function GET(request: Request) {
     );
     const dayMap = new Map<string, number>();
     for (const r of [...(Array.isArray(pdvByDay) ? pdvByDay : []), ...(Array.isArray(catByDay) ? catByDay : [])]) {
-      const key = String(r.d).slice(0, 10);
+      const key = toDateKey(r.d);
+      if (!key) continue;
       dayMap.set(key, (dayMap.get(key) ?? 0) + Number(r.total));
     }
     const dailyTotals = [...dayMap.entries()]
@@ -327,7 +348,8 @@ export async function GET(request: Request) {
 
     const catDayMapOnly = new Map<string, number>();
     for (const r of Array.isArray(catByDay) ? catByDay : []) {
-      const key = String(r.d).slice(0, 10);
+      const key = toDateKey(r.d);
+      if (!key) continue;
       catDayMapOnly.set(key, (catDayMapOnly.get(key) ?? 0) + Number(r.total));
     }
     const catalogDailyTotals = [...catDayMapOnly.entries()]

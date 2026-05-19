@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
+import type { GalleryDisplayCard } from '@/lib/post-gallery-utils';
+import { expandGalleryItems } from '@/lib/post-gallery-utils';
 
 type GalleryItem = {
   id: number;
@@ -13,9 +15,9 @@ type GalleryItem = {
 };
 
 export default function GalleryView() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [cards, setCards] = useState<GalleryDisplayCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<GalleryItem | null>(null);
+  const [selected, setSelected] = useState<GalleryDisplayCard | null>(null);
 
   const fetchGallery = async () => {
     setLoading(true);
@@ -23,12 +25,20 @@ export default function GalleryView() {
       const res = await fetch('/api/post/gallery');
       if (res.ok) {
         const data = await res.json();
-        setItems(Array.isArray(data) ? data : []);
+        if (Array.isArray(data.cards)) {
+          setCards(data.cards);
+        } else if (Array.isArray(data)) {
+          setCards(expandGalleryItems(data as GalleryItem[]));
+        } else if (Array.isArray(data.items)) {
+          setCards(expandGalleryItems(data.items as GalleryItem[]));
+        } else {
+          setCards([]);
+        }
       } else {
-        setItems([]);
+        setCards([]);
       }
     } catch {
-      setItems([]);
+      setCards([]);
     } finally {
       setLoading(false);
     }
@@ -38,13 +48,15 @@ export default function GalleryView() {
     fetchGallery();
   }, []);
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Excluir este post da galeria?')) return;
+  const handleDelete = async (card: GalleryDisplayCard) => {
+    if (!window.confirm('Excluir esta imagem da galeria?')) return;
     try {
-      const res = await fetch(`/api/post/gallery/${id}`, { method: 'DELETE' });
+      const siblings = cards.filter((c) => c.galleryId === card.galleryId);
+      const qs = siblings.length > 1 ? `?image_index=${card.imageIndex}` : '';
+      const res = await fetch(`/api/post/gallery/${card.galleryId}${qs}`, { method: 'DELETE' });
       if (res.ok) {
-        setItems((prev) => prev.filter((i) => i.id !== id));
-        if (selected?.id === id) setSelected(null);
+        setCards((prev) => prev.filter((c) => c.key !== card.key));
+        if (selected?.key === card.key) setSelected(null);
       }
     } catch {
       alert('Erro ao excluir');
@@ -68,12 +80,13 @@ export default function GalleryView() {
             Galeria de posts gerados
           </h2>
           <p className="text-slate-500 text-sm mt-1">
-            Todas as imagens que você gerou com IA estão salvas aqui.
+            Cada design gerado aparece como um card separado. Registros antigos com várias artes
+            também são listados imagem por imagem.
           </p>
         </div>
 
         <div className="p-6">
-          {items.length === 0 ? (
+          {cards.length === 0 ? (
             <div className="py-16 text-center text-slate-500">
               <ImagePlus size={48} className="mx-auto mb-4 text-slate-300" />
               <p className="font-medium">Nenhum post na galeria.</p>
@@ -81,35 +94,39 @@ export default function GalleryView() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {items.map((item) => (
+              {cards.map((card) => (
                 <div
-                  key={item.id}
+                  key={card.key}
                   className="group relative bg-slate-50 rounded-xl overflow-hidden border border-slate-100 hover:border-primary/30 transition-all"
                 >
                   <button
                     type="button"
-                    onClick={() => setSelected(item)}
-                    className="block w-full aspect-square overflow-hidden"
+                    onClick={() => setSelected(card)}
+                    className="block w-full aspect-square overflow-hidden bg-slate-200"
                   >
                     <img
-                      src={item.image_url}
-                      alt={item.product_name || 'Post'}
+                      src={card.image_url}
+                      alt={card.product_name || 'Post'}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      onError={(e) => {
+                        const el = e.target as HTMLImageElement;
+                        el.style.display = 'none';
+                      }}
                     />
                   </button>
                   <div className="p-3">
                     <p className="text-sm font-semibold text-slate-900 truncate">
-                      {item.product_name || 'Post'}
+                      {card.product_name || 'Post'}
                     </p>
                     <p className="text-xs text-slate-500">
-                      {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                      {new Date(card.created_at).toLocaleDateString('pt-BR')}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDelete(item.id);
+                      handleDelete(card);
                     }}
                     className="absolute top-2 right-2 p-1.5 bg-white/90 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 transition-all"
                     title="Excluir"
@@ -123,7 +140,6 @@ export default function GalleryView() {
         </div>
       </div>
 
-      {/* Modal de detalhe */}
       {selected && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"

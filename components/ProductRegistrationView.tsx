@@ -1,16 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { PRODUCT_CATEGORIES } from '@/lib/product-categories';
 
-const CATEGORIES = [
-  { value: 'agriculture', label: 'Agricultura' },
-  { value: 'craft', label: 'Artesanato' },
-  { value: 'food', label: 'Alimentos' },
-  { value: 'Geleias', label: 'Geleias' },
-  { value: 'Cestas', label: 'Cestas' },
-  { value: 'Bebidas', label: 'Bebidas' },
-  { value: 'Orgânicos', label: 'Orgânicos' },
-];
+const CATEGORIES = PRODUCT_CATEGORIES.map((label) => ({ value: label, label }));
 
 type Product = {
   id: string;
@@ -108,7 +101,8 @@ export default function ProductRegistrationView({ product, onBack, onSaved }: Pr
 
   const lucro = Math.max(0, priceSale - costCmv);
   const margem = priceSale > 0 ? (lucro / priceSale) * 100 : 0;
-  const catLabel = CATEGORIES.find((c) => c.value === category || c.label === category)?.label ?? category;
+  const catLabel =
+    (CATEGORIES.find((c) => c.value === category || c.label === category)?.label ?? category) || 'Outros';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS customers (
 CREATE TABLE IF NOT EXISTS catalog_orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   customer_id INT NOT NULL,
+  seller_user_id INT DEFAULT NULL,
   endereco VARCHAR(500) DEFAULT NULL,
   bairro VARCHAR(255) NOT NULL,
   rua VARCHAR(255) NOT NULL,
@@ -90,7 +91,8 @@ CREATE TABLE IF NOT EXISTS catalog_orders (
   cep VARCHAR(20) DEFAULT NULL,
   complemento VARCHAR(500) DEFAULT NULL,
   total DECIMAL(10,2) NOT NULL,
-  status ENUM('pendente','pago','cancelado') DEFAULT 'pendente',
+  status ENUM('pendente','pago','cancelado','entregue') DEFAULT 'pendente',
+  fulfillment_status ENUM('pendente','confirmado','em_preparacao','saiu_entrega','entregue') DEFAULT 'pendente',
   payment_id VARCHAR(255) DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT

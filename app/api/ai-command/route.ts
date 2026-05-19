@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth';
 const SYSTEM_PROMPT = `Você é um assistente que interpreta comandos em português e retorna ações para um ERP de gestão.
 
 Ações disponíveis (retorne JSON com "action" e "params"):
-- open_tab: Abrir aba do painel. tabs: "responses" (respostas/questionários), "catalogo" (catálogo), "pdv" (ponto de venda), "produtos", "post" (gerador de posts), "galeria", "relatorios" (vendas/gráficos), "usuarios", "configuracao"
+- open_tab: Abrir aba do painel. tabs: "responses" (respostas/questionários), "catalogo" (catálogo), "vendas_catalogo" (pedidos do catálogo/Kanban), "pdv" (ponto de venda), "produtos", "post" (gerador de posts), "galeria", "relatorios" (vendas/gráficos), "usuarios", "configuracao"
 - add_product: Cadastrar novo produto (abre formulário)
 - open_responses: Ver respostas de questionários
 - open_relatorios: Ver relatórios e vendas

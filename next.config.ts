@@ -3,10 +3,6 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   staticPageGenerationTimeout: 120,
-  // Evita bug "SegmentViewNode ... React Client Manifest" no dev (Next 15+)
-  experimental: {
-    devtoolSegmentExplorer: false,
-  },
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -49,16 +45,9 @@ const nextConfig: NextConfig = {
         ignored: /.*/,
       };
     } else if (dev) {
-      // Windows: pastas problemáticas (ex. "D:\videos obs") no scan do Watchpack (EINVAL).
-      // Webpack exige array de strings (globs), não RegExp em cada item.
       config.watchOptions = {
         ...config.watchOptions,
-        ignored: [
-          '**/node_modules/**',
-          '**/.git/**',
-          '**/.next/**',
-          '**/videos obs/**',
-        ],
+        ignored: ['**/node_modules/**', '**/.git/**', '**/.next/**'],
       };
     }
     return config;

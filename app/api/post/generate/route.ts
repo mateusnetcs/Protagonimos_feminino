@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { query } from '@/lib/db';
+import {
+  buildPostImageFromPhotoPrompt,
+  generatePostImagesOpenAI,
+  resolveProductImageUrl,
+} from '@/lib/openai-images';
+import { getPostVariantCount, pickDesignVariants } from '@/lib/post-design-variants';
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +15,14 @@ export async function POST(request: Request) {
     if (!session?.user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
 
     const body = await request.json();
-    const { product_id, include_frase = true, include_preco = true, include_nome = true } = body;
+    const {
+      product_id,
+      include_frase = true,
+      include_preco = true,
+      include_nome = true,
+      exclude_variant_ids,
+      variant_seed,
+    } = body;
     if (!product_id) return NextResponse.json({ error: 'product_id obrigatório' }, { status: 400 });
 
     const rows = await query<{ id: number; name: string; category?: string; description?: string; price_sale?: number; image_url?: string }[]>(
@@ -19,13 +32,18 @@ export async function POST(request: Request) {
     const product = Array.isArray(rows) ? rows[0] : rows;
     if (!product) return NextResponse.json({ error: 'Produto não encontrado' }, { status: 404 });
 
-    const openaiKey = process.env.OPENAI_API_KEY;
-    const useApiToken = process.env.USEAPI_TOKEN;
+    const openaiKey = process.env.OPENAI_API_KEY?.trim();
+    const useApiToken = process.env.USEAPI_TOKEN?.trim();
+    const imageProvider =
+      process.env.POST_IMAGE_PROVIDER?.toLowerCase() ||
+      (openaiKey ? 'openai' : useApiToken ? 'dreamina' : 'none');
 
     let caption = '';
     let imageUrl: string | null = null;
+    let imageUrls: string[] = [];
     let imageError: string | null = null;
     let jobid: string | null = null;
+    let jobids: string[] = [];
 
     const fallbackCaption = `${product.name} - R$ ${Number(product.price_sale || 0).toFixed(2).replace('.', ',')}\n\nProduto artesanal dos produtores de Imperatriz. #InovaçãoImperatriz #ProdutoresLocais`;
     const priceStr = Number(product.price_sale || 0).toFixed(2).replace('.', ',');
@@ -93,116 +111,145 @@ A legenda deve ser engajante, incluir hashtags relevantes (#InovaçãoImperatriz
       caption = fallbackCaption;
     }
 
-    // Imagem: Dreamina com foto do produto — prompt criativo e detalhado
-    const elementsToInclude: string[] = [];
-    if (include_nome) elementsToInclude.push(`"${product.name}"`);
-    if (include_preco) elementsToInclude.push(`"R$ ${priceStr}"`);
-    if (include_frase && fraseProduto) elementsToInclude.push(`"${fraseProduto}"`);
-    const includeText = elementsToInclude.length > 0
-      ? `Include these elements as highlighted text in the image with elegant, bold typography: ${elementsToInclude.join(' and ')}. `
-      : 'Do not add any text overlay on the image. ';
+  // Imagem: sempre a partir da foto cadastrada do produto
+    const pickVariants = {
+      excludeIds: Array.isArray(exclude_variant_ids)
+        ? exclude_variant_ids.filter((id: unknown) => typeof id === 'string')
+        : undefined,
+      seed: typeof variant_seed === 'number' ? variant_seed : undefined,
+    };
+    const designVariants = pickDesignVariants(getPostVariantCount(), pickVariants);
+    const postImageOptions = {
+      includeNome: include_nome,
+      includePreco: include_preco,
+      includeFrase: include_frase,
+      priceStr,
+      fraseProduto: fraseProduto || undefined,
+      pickVariants,
+    };
+    const productPhotoUrl = product.image_url?.trim() || null;
 
-    const imagePrompt = `Create multiple creative Instagram post designs for this product. Professional, high-end marketing style with varied concepts:
-Lifestyle shots with fresh ingredients and natural lighting, minimalist studio with bold typography, vibrant colorful compositions with decorative props, organic flat lays with natural materials.
-${includeText}Each design: creative composition, appetizing, eye-catching, shareable, professional photographer quality. Diverse styles: premium, artisanal, energetic, cozy.`;
+    const tryOpenAI = () =>
+      openaiKey &&
+      productPhotoUrl &&
+      (imageProvider === 'openai' || imageProvider === 'auto');
+    const tryDreamina = () =>
+      useApiToken &&
+      productPhotoUrl &&
+      imageUrls.length === 0 &&
+      !jobid &&
+      (imageProvider === 'dreamina' ||
+        imageProvider === 'auto' ||
+        (imageProvider === 'openai' && !!imageError));
 
-    if (useApiToken && product.image_url) {
-      try {
-        const accountsRes = await fetch('https://api.useapi.net/v1/dreamina/accounts', {
-          headers: { Authorization: `Bearer ${useApiToken}` },
-        });
-        const accounts = await accountsRes.json();
-        const account = typeof accounts === 'object' && !Array.isArray(accounts)
-          ? Object.keys(accounts)[0]
-          : null;
-
-        if (account) {
-          const imgRes = await fetch(product.image_url);
-          if (!imgRes.ok) throw new Error('Não foi possível carregar a foto do produto');
-          const imgBuffer = await imgRes.arrayBuffer();
-          const imgBytes = Buffer.from(imgBuffer);
-          const contentType = imgRes.headers.get('content-type')?.includes('png') ? 'image/png' : 'image/jpeg';
-
-          const uploadRes = await fetch(`https://api.useapi.net/v1/dreamina/assets/${encodeURIComponent(account)}`, {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${useApiToken}`,
-              'Content-Type': contentType,
-            },
-            body: imgBytes,
-          });
-          const uploadData = await uploadRes.json();
-          const assetRef = uploadData?.assetRef || uploadData?.imageRef;
-
-          if (assetRef) {
-            const genRes = await fetch('https://api.useapi.net/v1/dreamina/images', {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${useApiToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                prompt: imagePrompt,
-                model: 'seedream-4.6',
-                ratio: '1:1',
-                resolution: '2k',
-                imageRef_1: assetRef,
-                imageStrength: 0.75,
-              }),
-            });
-            const genData = await genRes.json();
-            if (genData?.jobid) {
-              jobid = genData.jobid;
-            } else {
-              imageError = genData?.error || 'Dreamina não retornou jobid';
-            }
-          } else {
-            imageError = uploadData?.error || 'Falha ao enviar foto do produto';
-          }
-        } else {
-          imageError = 'Nenhuma conta Dreamina configurada. Configure em useapi.net';
+    if (!productPhotoUrl) {
+      imageError = 'Cadastre uma foto do produto na aba Produtos antes de gerar o post.';
+    } else if (!openaiKey && !useApiToken) {
+      imageError = 'Configure OPENAI_API_KEY ou USEAPI_TOKEN em .env.local';
+    } else {
+      if (tryOpenAI()) {
+        const oaiResult = await generatePostImagesOpenAI(
+          openaiKey!,
+          product,
+          postImageOptions,
+          productPhotoUrl
+        );
+        if (oaiResult.imageUrls.length > 0) {
+          imageUrls = oaiResult.imageUrls;
+          imageUrl = oaiResult.imageUrl;
+        } else if (oaiResult.error) {
+          imageError = oaiResult.error;
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error('Dreamina error:', msg);
-        imageError = msg;
       }
-    }
 
-    if (!jobid && !imageUrl && !imageError && openaiKey) {
-      const imageRes = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'dall-e-3',
-          prompt: `Professional product photography${include_nome ? ` of ${product.name}` : ''}, ${product.category || 'artisanal product'}, appetizing, high quality, clean white background, soft lighting, e-commerce style${elementsToInclude.length > 0 ? `. Include text overlay: ${elementsToInclude.join(', ')}` : ''}`,
-          n: 1,
-          size: '1024x1024',
-          response_format: 'b64_json',
-          quality: 'standard',
-        }),
-      });
-      const imageData = await imageRes.json();
-      if (imageData?.error) {
-        imageError = imageData.error?.message || 'Erro ao gerar imagem com DALL-E.';
-      } else if (imageData?.data?.[0]?.b64_json) {
-        imageUrl = `data:image/png;base64,${imageData.data[0].b64_json}`;
+      if (tryDreamina()) {
+        try {
+          const accountsRes = await fetch('https://api.useapi.net/v1/dreamina/accounts', {
+            headers: { Authorization: `Bearer ${useApiToken}` },
+          });
+          const accounts = await accountsRes.json();
+          const account =
+            typeof accounts === 'object' && !Array.isArray(accounts) ? Object.keys(accounts)[0] : null;
+
+          if (account) {
+            const resolvedPhoto = resolveProductImageUrl(productPhotoUrl);
+            const imgRes = await fetch(resolvedPhoto, { cache: 'no-store' });
+            if (!imgRes.ok) throw new Error('Não foi possível carregar a foto do produto');
+            const imgBuffer = await imgRes.arrayBuffer();
+            const imgBytes = Buffer.from(imgBuffer);
+            const contentType = imgRes.headers.get('content-type')?.includes('png')
+              ? 'image/png'
+              : 'image/jpeg';
+
+            const uploadRes = await fetch(
+              `https://api.useapi.net/v1/dreamina/assets/${encodeURIComponent(account)}`,
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${useApiToken}`,
+                  'Content-Type': contentType,
+                },
+                body: imgBytes,
+              }
+            );
+            const uploadData = await uploadRes.json();
+            const assetRef = uploadData?.assetRef || uploadData?.imageRef;
+
+            if (assetRef) {
+              for (const variant of designVariants) {
+                const prompt = buildPostImageFromPhotoPrompt(product, postImageOptions, variant);
+                const genRes = await fetch('https://api.useapi.net/v1/dreamina/images', {
+                  method: 'POST',
+                  headers: {
+                    Authorization: `Bearer ${useApiToken}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    prompt,
+                    model: 'seedream-4.6',
+                    ratio: '1:1',
+                    resolution: '2k',
+                    imageRef_1: assetRef,
+                    imageStrength: 0.92,
+                  }),
+                });
+                const genData = await genRes.json();
+                if (genData?.jobid) {
+                  jobids.push(genData.jobid);
+                }
+              }
+              if (jobids.length > 0) {
+                jobid = jobids[0];
+              } else if (!imageUrl) {
+                imageError = 'Dreamina não retornou jobid';
+              }
+            } else if (!imageUrl) {
+              imageError = uploadData?.error || 'Falha ao enviar foto do produto';
+            }
+          } else if (!imageUrl) {
+            imageError = 'Nenhuma conta Dreamina configurada. Configure em useapi.net';
+          }
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error('Dreamina error:', msg);
+          if (!imageUrl) imageError = msg;
+        }
       }
-    }
 
-    if (!useApiToken && !openaiKey) {
-      imageError = 'Configure USEAPI_TOKEN (Dreamina) ou OPENAI_API_KEY em .env.local';
-    } else if (!product.image_url && useApiToken) {
-      imageError = 'Produto sem foto. Cadastre uma imagem para usar Dreamina.';
+      if (!imageUrl && !jobid && !imageError) {
+        imageError =
+          'Não foi possível gerar a imagem com a foto do produto. Verifique OPENAI_API_KEY, USEAPI_TOKEN e o saldo da conta.';
+      }
     }
 
     return NextResponse.json({
       caption,
       imageUrl,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+      variantIds: designVariants.map((v) => v.id),
+      variantNames: designVariants.map((v) => v.name),
       jobid: jobid ?? undefined,
+      jobids: jobids.length > 0 ? jobids : undefined,
       imageError: imageError ?? undefined,
       product: { name: product.name, category: product.category, image_url: product.image_url },
     });

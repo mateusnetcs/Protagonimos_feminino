@@ -1,12 +1,12 @@
-import NextAuth, { type AuthOptions } from 'next-auth';
+import type { AuthOptions } from 'next-auth';
+import Credentials from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import { getPool } from './db';
 
 export function isAdminSession(session: unknown): boolean {
   const s = session as { user?: { role?: string } } | null | undefined;
   return !!s?.user && (s.user as { role?: string }).role === 'admin';
 }
-import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcryptjs';
-import { getPool } from './db';
 
 export const authOptions: AuthOptions = {
   providers: [

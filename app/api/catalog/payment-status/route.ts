@@ -25,8 +25,8 @@ export async function GET(request: Request) {
     const status = payment.status;
     if (status === 'approved') {
       await query(
-        'UPDATE catalog_orders SET status = ? WHERE payment_id = ?',
-        ['pago', paymentId]
+        `UPDATE catalog_orders SET status = 'pago', fulfillment_status = 'confirmado' WHERE payment_id = ?`,
+        [paymentId]
       );
       return NextResponse.json({ status: 'approved' });
     }

@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
+import { CATALOG_CATEGORIES, CATEGORY_ICONS } from '@/lib/product-categories';
 
 type Product = {
   id: string;
@@ -15,17 +16,7 @@ type Product = {
   image_url?: string;
 };
 
-const CATEGORIES = ['Todos', 'Geleias', 'Cestas', 'Artesanato', 'Bebidas', 'Orgânicos', 'Outros'];
-
-const CATEGORY_ICONS: Record<string, string> = {
-  Todos: 'deployed_code',
-  Geleias: 'storage',
-  Cestas: 'shopping_basket',
-  Artesanato: 'brush',
-  Bebidas: 'local_cafe',
-  Orgânicos: 'eco',
-  Outros: 'more_horiz',
-};
+const CATEGORIES = CATALOG_CATEGORIES;
 
 function getStockBadge(stock: number, min: number): { label: string; class: string } {
   if (stock <= 0) return { label: 'Sem estoque', class: 'bg-rose-100 text-rose-700 border-rose-200' };

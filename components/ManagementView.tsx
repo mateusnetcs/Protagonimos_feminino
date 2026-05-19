@@ -14,6 +14,7 @@ import {
   Search,
   Settings,
   ShoppingBag,
+  ShoppingCart,
   Users,
 } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
@@ -28,6 +29,7 @@ import ResponsesView from './management/ResponsesView';
 import ProductsTabView from './management/ProductsTabView';
 import ImportNotaView from './management/ImportNotaView';
 import CatalogManagementTab from './management/CatalogManagementTab';
+import CatalogOrdersKanban from './management/CatalogOrdersKanban';
 import UsersTabView from './management/UsersTabView';
 import CommandBar, { type CommandAction } from './CommandBar';
 
@@ -35,7 +37,18 @@ type ManagementViewProps = {
   onBack: () => void;
 };
 
-const VALID_TABS = ['responses', 'catalogo', 'pdv', 'produtos', 'post', 'galeria', 'relatorios', 'usuarios', 'configuracao'] as const;
+const VALID_TABS = [
+  'responses',
+  'catalogo',
+  'vendas_catalogo',
+  'pdv',
+  'produtos',
+  'post',
+  'galeria',
+  'relatorios',
+  'usuarios',
+  'configuracao',
+] as const;
 type TabId = (typeof VALID_TABS)[number];
 
 function parseTabFromSearch(search: string, isAdminUser: boolean): TabId | null {
@@ -339,6 +352,17 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             Catálogo
           </button>
           <button
+            onClick={() => goToTab('vendas_catalogo')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+              activeTab === 'vendas_catalogo'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <ShoppingCart size={20} />
+            Vendas Catálogo
+          </button>
+          <button
             onClick={() => goToTab('pdv')}
             className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
               activeTab === 'pdv'
@@ -432,6 +456,10 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             showCreateQuestionnaire
             selectedQuestionnaireId={selectedQuestionnaireId}
             onQuestionnaireChange={setSelectedQuestionnaireId}
+          />
+        ) : activeTab === 'vendas_catalogo' ? (
+          <CatalogOrdersKanban
+            selectedUserId={isAdmin && selectedUserId ? selectedUserId : undefined}
           />
         ) : activeTab === 'pdv' ? (
           <PDVView />

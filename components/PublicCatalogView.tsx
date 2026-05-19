@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import CheckoutModal from './CheckoutModal';
 import CatalogLoginModal from './CatalogLoginModal';
 import CustomerSettingsModal from './CustomerSettingsModal';
+import { CATALOG_CATEGORIES, CATEGORY_ICONS } from '@/lib/product-categories';
 
 type Product = {
   id: string;
@@ -26,17 +27,7 @@ type CartItem = {
   unit_price: number;
 };
 
-const CATEGORIES = ['Todos', 'Geleias', 'Cestas', 'Artesanato', 'Bebidas', 'Orgânicos', 'Outros'];
-
-const CATEGORY_ICONS: Record<string, string> = {
-  Todos: 'deployed_code',
-  Geleias: 'storage',
-  Cestas: 'shopping_basket',
-  Artesanato: 'brush',
-  Bebidas: 'local_cafe',
-  Orgânicos: 'eco',
-  Outros: 'more_horiz',
-};
+const CATEGORIES = CATALOG_CATEGORIES;
 
 function getStockBadge(stock: number, min: number): { label: string; class: string } {
   if (stock <= 0) return { label: 'Sem estoque', class: 'bg-rose-100 text-rose-700 border-rose-200' };
@@ -99,6 +90,31 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
   useEffect(() => {
     fetchCustomer();
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (!payment) return;
+    if (payment === 'success') {
+      const orderId = params.get('order_id');
+      if (orderId) {
+        fetch(`/api/catalog/confirm-return?payment=success&order_id=${encodeURIComponent(orderId)}`).catch(
+          () => {}
+        );
+      }
+      setToast({
+        msg: 'Pagamento confirmado! Obrigado pela compra na Inovação Imperatriz.',
+      });
+      setCart([]);
+    } else if (payment === 'failure') {
+      setToast({ msg: 'Pagamento não concluído. Você pode tentar novamente.' });
+    } else if (payment === 'pending') {
+      setToast({ msg: 'Pagamento em análise. Avisaremos quando for confirmado.' });
+    }
+    window.history.replaceState({}, '', userId ? `/catalogo/${userId}` : '/catalogo');
+    setTimeout(() => setToast(null), 8000);
+  }, [userId]);
 
   const fetchProducts = React.useCallback(() => {
     if (!userId) return;
@@ -585,6 +601,7 @@ export default function PublicCatalogView({ userId }: PublicCatalogViewProps = {
         <CheckoutModal
           items={cart}
           customer={customer}
+          sellerUserId={userId ?? undefined}
           onClose={() => setShowCheckout(false)}
           onSuccess={(customerName) => {
             const nome = (customerName || '').trim();

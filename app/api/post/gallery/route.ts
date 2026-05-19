@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { query } from '@/lib/db';
+import { query, getPool } from '@/lib/db';
+import { expandGalleryItems } from '@/lib/post-gallery-utils';
+import { persistPostImage, persistPostImages } from '@/lib/persist-post-image';
 
 export async function GET() {
   try {
@@ -12,7 +14,14 @@ export async function GET() {
     if (!userId) return NextResponse.json({ error: 'Usuário não identificado' }, { status: 401 });
 
     const rows = await query<
-      { id: number; product_name: string | null; caption: string | null; image_url: string; image_urls: string | null; created_at: string }[]
+      {
+        id: number;
+        product_name: string | null;
+        caption: string | null;
+        image_url: string;
+        image_urls: string | null;
+        created_at: string;
+      }[]
     >(
       `SELECT id, product_name, caption, image_url, image_urls, created_at
        FROM post_gallery
@@ -21,7 +30,8 @@ export async function GET() {
       [userId]
     );
     const items = Array.isArray(rows) ? rows : [rows].filter(Boolean);
-    return NextResponse.json(items);
+    const cards = expandGalleryItems(items);
+    return NextResponse.json({ items, cards });
   } catch (err) {
     console.error('Gallery list error:', err);
     return NextResponse.json({ error: 'Erro ao carregar galeria' }, { status: 500 });
@@ -39,19 +49,43 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { product_id, product_name, caption, image_url, image_urls } = body;
 
-    if (!image_url || typeof image_url !== 'string') {
-      return NextResponse.json({ error: 'image_url obrigatório' }, { status: 400 });
+    const incoming =
+      Array.isArray(image_urls) && image_urls.length > 0
+        ? image_urls.filter((u: unknown) => typeof u === 'string' && u.trim())
+        : image_url && typeof image_url === 'string'
+          ? [image_url]
+          : [];
+
+    if (incoming.length === 0) {
+      return NextResponse.json({ error: 'Informe ao menos uma imagem' }, { status: 400 });
     }
 
-    const urlsJson = Array.isArray(image_urls) ? JSON.stringify(image_urls) : null;
+    let storedUrls: string[];
+    try {
+      storedUrls = await persistPostImages(incoming);
+    } catch (persistErr) {
+      console.error('Gallery persist image error:', persistErr);
+      return NextResponse.json(
+        { error: persistErr instanceof Error ? persistErr.message : 'Erro ao gravar imagem' },
+        { status: 500 }
+      );
+    }
 
-    await query(
-      `INSERT INTO post_gallery (user_id, product_id, product_name, caption, image_url, image_urls)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, product_id || null, product_name || null, caption || null, image_url, urlsJson]
-    );
+    const pool = getPool();
+    const insertedIds: number[] = [];
 
-    return NextResponse.json({ ok: true });
+    for (const url of storedUrls) {
+      const urlsJson = JSON.stringify([url]);
+      const [result] = await pool.execute(
+        `INSERT INTO post_gallery (user_id, product_id, product_name, caption, image_url, image_urls)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [userId, product_id || null, product_name || null, caption || null, url, urlsJson]
+      );
+      const header = result as { insertId?: number };
+      if (header.insertId) insertedIds.push(header.insertId);
+    }
+
+    return NextResponse.json({ ok: true, savedCount: storedUrls.length, ids: insertedIds });
   } catch (err) {
     console.error('Gallery save error:', err);
     return NextResponse.json({ error: 'Erro ao salvar na galeria' }, { status: 500 });
