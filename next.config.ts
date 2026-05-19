@@ -34,7 +34,11 @@ const nextConfig: NextConfig = {
   },
   output: 'standalone',
   outputFileTracingIncludes: {
-    '/': ['./node_modules/mysql2/**/*', './node_modules/bcryptjs/**/*'],
+    '/': [
+      './node_modules/mysql2/**/*',
+      './node_modules/sql-escaper/**/*',
+      './node_modules/bcryptjs/**/*',
+    ],
   },
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
