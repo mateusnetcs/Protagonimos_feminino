@@ -3,6 +3,10 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   staticPageGenerationTimeout: 120,
+  experimental: {
+    // Evita bug "React Client Manifest" / global-error no dev (Next 15)
+    devtoolSegmentExplorer: false,
+  },
   async rewrites() {
     return [
       {
