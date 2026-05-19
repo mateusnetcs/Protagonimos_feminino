@@ -1,5 +1,6 @@
-import { writeFile, mkdir } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import path from 'path';
+import { ensureUploadSubdir, uploadPublicUrl } from '@/lib/upload-dir';
 
 /** Salva data URL ou URL remota em /public/uploads/posts e retorna o caminho local */
 export async function persistPostImage(imageUrl: string): Promise<string> {
@@ -7,13 +8,12 @@ export async function persistPostImage(imageUrl: string): Promise<string> {
   if (!trimmed) throw new Error('URL de imagem vazia');
   if (trimmed.startsWith('/uploads/')) return trimmed;
 
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'posts');
-  await mkdir(uploadDir, { recursive: true });
+  const uploadDir = await ensureUploadSubdir('posts');
 
   const saveBuffer = async (buffer: Buffer, ext: string) => {
     const filename = `post-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${ext}`;
     await writeFile(path.join(uploadDir, filename), buffer);
-    return `/uploads/posts/${filename}`;
+    return uploadPublicUrl('posts', filename);
   };
 
   if (trimmed.startsWith('data:image/')) {

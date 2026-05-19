@@ -11,5 +11,6 @@ echo "APP_URL=$APP_URL"
 # Init do MySQL em background para não segurar a porta 3000 (evita 504 no proxy enquanto espera DB)
 echo '=== INIT DB EM BACKGROUND (log: /tmp/jornada-init-db.log) ==='
 nohup /app/scripts/init-db.sh > /tmp/jornada-init-db.log 2>&1 &
+mkdir -p /app/public/uploads/posts /app/public/uploads/products /app/public/uploads/customers 2>/dev/null || true
 echo '=== INICIANDO NODE ==='
 exec node server.js

@@ -16,6 +16,8 @@ services:
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       APP_URL: ${APP_URL:-}
       REMOVEBG_API_KEY: ${REMOVEBG_API_KEY:-}
+    volumes:
+      - app_uploads:/app/public/uploads
     depends_on:
       - mysql
     networks:
@@ -48,6 +50,7 @@ services:
 
 volumes:
   mysql_data:
+  app_uploads:
 
 networks:
   app-network:

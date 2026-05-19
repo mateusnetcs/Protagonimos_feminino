@@ -29,11 +29,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends default-mysql-c
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
+
+RUN mkdir -p /app/public/uploads/posts /app/public/uploads/products /app/public/uploads/customers \
+    && chown -R nextjs:nodejs /app/public/uploads
 
 RUN chmod +x /app/scripts/init-db.sh /app/scripts/startup.sh
 
