@@ -32,6 +32,9 @@ import CatalogManagementTab from './management/CatalogManagementTab';
 import CatalogOrdersKanban from './management/CatalogOrdersKanban';
 import UsersTabView from './management/UsersTabView';
 import CommandBar, { type CommandAction } from './CommandBar';
+import AssistantChat from './AssistantChat';
+import type { AssistantAction } from '@/lib/assistant-types';
+import { MANAGEMENT_TABS, type ManagementTabId } from '@/lib/assistant-types';
 
 type ManagementViewProps = {
   onBack: () => void;
@@ -166,6 +169,37 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         break;
     }
   }, [isAdmin, handleLogout, goToTab]);
+
+  const handleAssistantAction = useCallback(
+    (action: AssistantAction) => {
+      switch (action.type) {
+        case 'open_tab': {
+          const tab = action.tab as TabId;
+          if (MANAGEMENT_TABS.includes(tab as ManagementTabId)) {
+            if (tab === 'responses' && !isAdmin) return;
+            setShowProductForm(false);
+            setShowImportNota(false);
+            goToTab(tab);
+          }
+          break;
+        }
+        case 'add_product':
+          setEditingProduct(null);
+          setShowProductForm(true);
+          setShowImportNota(false);
+          goToTab('produtos');
+          break;
+        case 'import_nota':
+          setShowImportNota(true);
+          setShowProductForm(false);
+          goToTab('produtos');
+          break;
+        default:
+          break;
+      }
+    },
+    [isAdmin, goToTab]
+  );
 
   const fetchResponses = async () => {
     setLoading(true);
@@ -569,6 +603,8 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
           onAction={handleCommandAction}
           isAdmin={isAdmin}
         />
+
+        <AssistantChat isAdmin={isAdmin} onAction={handleAssistantAction} />
       </div>
     </div>
   );
