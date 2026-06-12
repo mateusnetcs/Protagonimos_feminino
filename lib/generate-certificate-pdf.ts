@@ -1,4 +1,6 @@
-import { existsSync } from 'fs';
+import { existsSync, mkdirSync } from 'fs';
+import { tmpdir } from 'os';
+import path from 'path';
 import puppeteer, { type Browser } from 'puppeteer-core';
 import { buildCertificateHtml } from '@/lib/certificate-html';
 import { getCertificateLogos } from '@/lib/certificate-logo';
@@ -12,7 +14,20 @@ const CHROMIUM_ARGS = [
   '--disable-gpu',
   '--disable-software-rasterizer',
   '--font-render-hinting=none',
+  '--disable-crash-reporter',
+  '--disable-breakpad',
+  '--disable-features=Crashpad',
 ] as const;
+
+function getChromiumProfileDir(): string {
+  const base =
+    process.env.CHROMIUM_USER_DATA_DIR?.trim() ||
+    path.join(tmpdir(), 'protagonimos-chromium');
+  mkdirSync(base, { recursive: true });
+  mkdirSync(path.join(base, '.config'), { recursive: true });
+  mkdirSync(path.join(base, '.cache'), { recursive: true });
+  return base;
+}
 
 function getExecutablePath(): string | undefined {
   const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
@@ -29,11 +44,19 @@ function getExecutablePath(): string | undefined {
 
 export async function launchCertificateBrowser(): Promise<Browser> {
   const executablePath = getExecutablePath();
+  const profileDir = getChromiumProfileDir();
   try {
     return await puppeteer.launch({
       headless: true,
       executablePath,
-      args: [...CHROMIUM_ARGS],
+      userDataDir: profileDir,
+      env: {
+        ...process.env,
+        HOME: profileDir,
+        XDG_CONFIG_HOME: path.join(profileDir, '.config'),
+        XDG_CACHE_HOME: path.join(profileDir, '.cache'),
+      },
+      args: [...CHROMIUM_ARGS, `--crash-dumps-dir=${path.join(profileDir, 'crashes')}`],
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

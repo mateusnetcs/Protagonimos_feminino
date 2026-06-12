@@ -67,7 +67,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
 
 RUN mkdir -p /app/public/uploads/posts /app/public/uploads/products /app/public/uploads/customers \
-    && chown -R nextjs:nodejs /app/public/uploads
+    /tmp/chromium-data \
+    && chown -R nextjs:nodejs /app/public/uploads /tmp/chromium-data
+
+ENV CHROMIUM_USER_DATA_DIR=/tmp/chromium-data
 
 RUN chmod +x /app/scripts/init-db.sh /app/scripts/startup.sh
 
