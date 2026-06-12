@@ -1,7 +1,9 @@
-import { existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import puppeteer, { type Browser } from 'puppeteer-core';
+
+type CertificateBrowser = Browser & { __profileDir?: string };
 import { buildCertificateHtml } from '@/lib/certificate-html';
 import { getCertificateLogos } from '@/lib/certificate-logo';
 import { createCertificateQrDataUri } from '@/lib/certificate-qr';
@@ -19,14 +21,21 @@ const CHROMIUM_ARGS = [
   '--disable-features=Crashpad',
 ] as const;
 
-function getChromiumProfileDir(): string {
-  const base =
-    process.env.CHROMIUM_USER_DATA_DIR?.trim() ||
-    path.join(tmpdir(), 'protagonimos-chromium');
-  mkdirSync(base, { recursive: true });
-  mkdirSync(path.join(base, '.config'), { recursive: true });
-  mkdirSync(path.join(base, '.cache'), { recursive: true });
-  return base;
+function createChromiumProfileDir(): string {
+  const base = process.env.CHROMIUM_USER_DATA_DIR?.trim() || tmpdir();
+  return mkdtempSync(path.join(base, 'protagonimos-chromium-'));
+}
+
+export async function closeCertificateBrowser(browser: Browser): Promise<void> {
+  const profileDir = (browser as CertificateBrowser).__profileDir;
+  await browser.close().catch(() => undefined);
+  if (profileDir) {
+    try {
+      rmSync(profileDir, { recursive: true, force: true });
+    } catch {
+      /* perfil já removido */
+    }
+  }
 }
 
 function getExecutablePath(): string | undefined {
@@ -44,21 +53,33 @@ function getExecutablePath(): string | undefined {
 
 export async function launchCertificateBrowser(): Promise<Browser> {
   const executablePath = getExecutablePath();
-  const profileDir = getChromiumProfileDir();
+  const profileDir = createChromiumProfileDir();
+  const configDir = path.join(profileDir, '.config');
+  const cacheDir = path.join(profileDir, '.cache');
+  const crashesDir = path.join(profileDir, 'crashes');
+
   try {
-    return await puppeteer.launch({
+    const browser = (await puppeteer.launch({
       headless: true,
       executablePath,
       userDataDir: profileDir,
       env: {
         ...process.env,
         HOME: profileDir,
-        XDG_CONFIG_HOME: path.join(profileDir, '.config'),
-        XDG_CACHE_HOME: path.join(profileDir, '.cache'),
+        XDG_CONFIG_HOME: configDir,
+        XDG_CACHE_HOME: cacheDir,
       },
-      args: [...CHROMIUM_ARGS, `--crash-dumps-dir=${path.join(profileDir, 'crashes')}`],
-    });
+      args: [...CHROMIUM_ARGS, `--crash-dumps-dir=${crashesDir}`],
+    })) as CertificateBrowser;
+
+    browser.__profileDir = profileDir;
+    return browser;
   } catch (err) {
+    try {
+      rmSync(profileDir, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
     const message = err instanceof Error ? err.message : String(err);
     throw new Error(
       `Falha ao iniciar Chromium (${executablePath ?? 'sem caminho'}): ${message}`
@@ -125,6 +146,6 @@ export async function generateCertificatePdf(
   try {
     return await renderCertificatePdf(browser, recipientName, userId, issuedAt);
   } finally {
-    await browser.close();
+    await closeCertificateBrowser(browser);
   }
 }

@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { certificateFileName } from '@/lib/certificate-html';
 import { listCertificateEligibleUsers, requireAdminSession } from '@/lib/certificate-users';
-import { launchCertificateBrowser, renderCertificatePdf } from '@/lib/generate-certificate-pdf';
+import {
+  closeCertificateBrowser,
+  launchCertificateBrowser,
+  renderCertificatePdf,
+} from '@/lib/generate-certificate-pdf';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300;
@@ -58,7 +62,7 @@ export async function GET() {
     );
   } finally {
     if (browser) {
-      await browser.close().catch(() => undefined);
+      await closeCertificateBrowser(browser);
     }
   }
 }

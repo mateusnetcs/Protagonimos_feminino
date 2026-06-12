@@ -71,7 +71,7 @@ export default function CertificatesView() {
       const res = await fetch(`/api/admin/certificates/${user.id}`, { credentials: 'include' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Erro ao gerar certificado');
+        throw new Error(data.detail ?? data.error ?? 'Erro ao gerar certificado');
       }
       const blob = await res.blob();
       const fileName = fileNameFromDisposition(
@@ -93,7 +93,7 @@ export default function CertificatesView() {
       const res = await fetch('/api/admin/certificates/bulk', { credentials: 'include' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Erro ao gerar pacote');
+        throw new Error(data.detail ?? data.error ?? 'Erro ao gerar pacote');
       }
       const blob = await res.blob();
       triggerDownload(blob, 'certificados-protagonismo-feminino.zip');
