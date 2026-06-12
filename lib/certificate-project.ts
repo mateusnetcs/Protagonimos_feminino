@@ -4,4 +4,4 @@ export const CERTIFICATE_PROJECT_TITLE =
 
 export const CERTIFICATE_PROJECT_SHORT = 'TecnoProdutivo';
 
-export const CERTIFICATE_OFFERED_BY = 'Uemasul · Curso de Administração';
+export const CERTIFICATE_OFFERED_BY = 'UEMASUL · Curso de Administração';

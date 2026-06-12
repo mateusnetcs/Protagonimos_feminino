@@ -117,6 +117,12 @@ export function buildCertificateHtml(
       display: block;
       opacity: 0.5;
     }
+    .logo-uemasul-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5mm;
+    }
     .logos-wrap img.logo-admin {
       height: 14mm;
       width: auto;
@@ -366,8 +372,11 @@ export function buildCertificateHtml(
     /* Assinaturas */
     .signatures {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8mm;
+      grid-template-columns: 1fr 1fr;
+      gap: 12mm;
+      max-width: 78%;
+      margin-left: auto;
+      margin-right: auto;
       margin-top: auto;
       padding-top: 5mm;
       position: relative;
@@ -409,13 +418,21 @@ export function buildCertificateHtml(
     }
     .sig-role {
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 12px;
+      font-size: 11px;
       color: #64748b;
       margin-top: 5px;
-      line-height: 1.4;
+      line-height: 1.35;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      font-weight: 600;
+    }
+    .logo-uemasul-label {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: #92400e;
+      text-align: center;
+      margin-top: 1mm;
     }
 
     /* Rodapé */
@@ -484,7 +501,7 @@ export function buildCertificateHtml(
             Certificamos, para os devidos fins, que a participante abaixo identificada concluiu
             com êxito as atividades formativas e capacitações do projeto
             <strong>${escapeHtml(CERTIFICATE_PROJECT_TITLE)}</strong>, ofertado pela
-            <strong>Uemasul</strong> e pelo <strong>Curso de Administração</strong>, promovido
+            <strong>UEMASUL</strong> e pelo <strong>Curso de Administração</strong>, promovido
             em Imperatriz — MA.
           </p>
           <div class="name-block">
@@ -500,19 +517,14 @@ export function buildCertificateHtml(
 
         <div class="signatures">
           <div class="sig">
-            <div class="sig-name">${escapeHtml(name)}</div>
-            <div class="sig-line-wrap"><div class="sig-line"></div></div>
-            <div class="sig-role">Participante</div>
-          </div>
-          <div class="sig">
-            <div class="sig-name">Iracema Rocha da Silva</div>
+            <div class="sig-name">Profa. Iracema Rocha da Silva</div>
             <div class="sig-line-wrap"><div class="sig-line"></div></div>
             <div class="sig-role">Coordenadora do Projeto</div>
           </div>
           <div class="sig">
-            <div class="sig-name">Jhoson Alves</div>
+            <div class="sig-name">Claudio Jhonson pereira Alves</div>
             <div class="sig-line-wrap"><div class="sig-line"></div></div>
-            <div class="sig-role">Coordenador da<br/>Agricultura Familiar</div>
+            <div class="sig-role">Superintendente de Agricultura familiar de imperatriz</div>
           </div>
         </div>
 
@@ -546,7 +558,10 @@ function buildLogosBlock(uemasul?: string, administracao?: string): string {
   if (!uemasul && !administracao) return cornerOrnament('ornament-tl');
 
   const uemasulImg = uemasul
-    ? `<img class="logo-uemasul" src="${uemasul}" alt="Uemasul" />`
+    ? `<div class="logo-uemasul-block">
+        <img class="logo-uemasul" src="${uemasul}" alt="UEMASUL" />
+        <p class="logo-uemasul-label">UEMASUL</p>
+      </div>`
     : '';
   const adminImg = administracao
     ? `<img class="logo-admin" src="${administracao}" alt="Curso de Administração" />`
