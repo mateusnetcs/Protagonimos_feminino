@@ -30,7 +30,7 @@ export function buildCertificateHtml(
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Pinyon+Script&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     @page { size: A4 landscape; margin: 0; }
@@ -341,11 +341,12 @@ export function buildCertificateHtml(
       margin-bottom: 4px;
     }
     .recipient-name {
-      font-family: 'Great Vibes', cursive;
-      font-size: 72px;
+      font-family: 'Allura', 'Great Vibes', 'Pinyon Script', cursive;
+      font-size: 56px;
       font-weight: 400;
+      font-style: normal;
       color: #d97706;
-      line-height: 1.15;
+      line-height: 1.2;
       padding: 2mm 14mm 3mm;
       background: linear-gradient(180deg, transparent 85%, rgba(244,140,37,0.12) 85%, rgba(244,140,37,0.12) 88%, transparent 88%);
       position: relative;
@@ -408,12 +409,13 @@ export function buildCertificateHtml(
     .sig-line-wrap::before { left: -2px; }
     .sig-line-wrap::after { right: -2px; }
     .sig-name {
-      font-family: 'Great Vibes', cursive;
-      font-size: 26px;
+      font-family: 'Allura', 'Great Vibes', 'Pinyon Script', cursive;
+      font-size: 30px;
       font-weight: 400;
+      font-style: normal;
       color: #1e293b;
       margin-bottom: 2px;
-      line-height: 1.1;
+      line-height: 1.15;
       padding: 0 2mm;
     }
     .sig-role {

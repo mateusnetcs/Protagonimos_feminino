@@ -88,9 +88,9 @@ export async function launchCertificateBrowser(): Promise<Browser> {
 }
 
 async function waitForFonts(page: Awaited<ReturnType<Browser['newPage']>>): Promise<void> {
-  await Promise.race([
+    await Promise.race([
     page.evaluate(() => document.fonts.ready),
-    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+    new Promise<void>((resolve) => setTimeout(resolve, 12000)),
   ]);
 }
 
