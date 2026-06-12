@@ -1,4 +1,4 @@
-import puppeteer, { type Browser } from 'puppeteer';
+import puppeteer, { type Browser } from 'puppeteer-core';
 import { buildCertificateHtml } from '@/lib/certificate-html';
 import { getCertificateLogos } from '@/lib/certificate-logo';
 import { createCertificateQrDataUri } from '@/lib/certificate-qr';

@@ -1,5 +1,5 @@
 # Build (slim para compatibilidade com mysql2 e módulos nativos)
-FROM node:20-slim AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
@@ -10,14 +10,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 RUN npm ci
 
 COPY . .
 RUN npm run build
 
 # Production
-FROM node:20-slim AS runner
+FROM node:22-slim AS runner
 
 WORKDIR /app
 
