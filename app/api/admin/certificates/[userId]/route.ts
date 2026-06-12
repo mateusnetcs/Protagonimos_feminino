@@ -34,7 +34,8 @@ export async function GET(_request: Request, context: RouteContext) {
       },
     });
   } catch (err) {
-    console.error('Certificate PDF error:', err);
-    return NextResponse.json({ error: 'Erro ao gerar certificado' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('Certificate PDF error:', detail, err);
+    return NextResponse.json({ error: 'Erro ao gerar certificado', detail }, { status: 500 });
   }
 }

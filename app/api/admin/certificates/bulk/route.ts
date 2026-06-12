@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { ZipArchive } from 'archiver';
 import { certificateFileName } from '@/lib/certificate-html';
 import { listCertificateEligibleUsers, requireAdminSession } from '@/lib/certificate-users';
 import { launchCertificateBrowser, renderCertificatePdf } from '@/lib/generate-certificate-pdf';
@@ -24,6 +23,7 @@ export async function GET() {
 
     browser = await launchCertificateBrowser();
 
+    const { ZipArchive } = await import('archiver');
     const archive = new ZipArchive({ zlib: { level: 6 } });
     const chunks: Buffer[] = [];
 
@@ -50,8 +50,12 @@ export async function GET() {
       },
     });
   } catch (err) {
-    console.error('Certificates bulk error:', err);
-    return NextResponse.json({ error: 'Erro ao gerar pacote de certificados' }, { status: 500 });
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error('Certificates bulk error:', detail, err);
+    return NextResponse.json(
+      { error: 'Erro ao gerar pacote de certificados', detail },
+      { status: 500 }
+    );
   } finally {
     if (browser) {
       await browser.close().catch(() => undefined);
