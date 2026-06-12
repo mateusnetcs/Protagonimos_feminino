@@ -1,26 +1,53 @@
+import { existsSync } from 'fs';
 import puppeteer, { type Browser } from 'puppeteer-core';
 import { buildCertificateHtml } from '@/lib/certificate-html';
 import { getCertificateLogos } from '@/lib/certificate-logo';
 import { createCertificateQrDataUri } from '@/lib/certificate-qr';
 import { getCertificateVerifyUrl } from '@/lib/certificate-verify';
 
+const CHROMIUM_ARGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  '--disable-software-rasterizer',
+  '--font-render-hinting=none',
+] as const;
+
 function getExecutablePath(): string | undefined {
-  if (process.env.PUPPETEER_EXECUTABLE_PATH?.trim()) {
-    return process.env.PUPPETEER_EXECUTABLE_PATH.trim();
+  const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
+  if (fromEnv) return fromEnv;
+
+  if (process.platform !== 'linux') return undefined;
+
+  for (const candidate of ['/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+    if (existsSync(candidate)) return candidate;
   }
-  if (process.platform === 'linux') {
-    return '/usr/bin/chromium';
-  }
-  return undefined;
+
+  return '/usr/bin/chromium';
 }
 
 export async function launchCertificateBrowser(): Promise<Browser> {
   const executablePath = getExecutablePath();
-  return puppeteer.launch({
-    headless: true,
-    executablePath,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  });
+  try {
+    return await puppeteer.launch({
+      headless: true,
+      executablePath,
+      args: [...CHROMIUM_ARGS],
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Falha ao iniciar Chromium (${executablePath ?? 'sem caminho'}): ${message}`
+    );
+  }
+}
+
+async function waitForFonts(page: Awaited<ReturnType<Browser['newPage']>>): Promise<void> {
+  await Promise.race([
+    page.evaluate(() => document.fonts.ready),
+    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+  ]);
 }
 
 async function buildCertificatePdfHtml(
@@ -52,8 +79,8 @@ export async function renderCertificatePdf(
   const page = await browser.newPage();
 
   try {
-    await page.setContent(html, { waitUntil: 'load', timeout: 45000 });
-    await page.evaluate(() => document.fonts.ready);
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await waitForFonts(page);
     const pdf = await page.pdf({
       format: 'A4',
       landscape: true,
