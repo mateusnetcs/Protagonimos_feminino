@@ -1,5 +1,9 @@
 import type { LucideIcon } from 'lucide-react';
 import {
+  CERTIFICATE_OFFERED_BY,
+  CERTIFICATE_PROJECT_TITLE,
+} from '@/lib/certificate-project';
+import {
   BarChart3,
   HeartHandshake,
   ImagePlus,
@@ -26,10 +30,10 @@ export type ModuloProgramatico = {
 
 export const CONTEUDO_PROGRAMATICO_INTRO = {
   titulo: 'Conteúdo Programático',
-  programa: 'Protagonismo Feminino',
-  oferta: 'Uemasul · Curso de Administração · Inovação Imperatriz',
+  programa: CERTIFICATE_PROJECT_TITLE,
+  oferta: CERTIFICATE_OFFERED_BY,
   descricao:
-    'Trilha formativa que integra empreendedorismo feminino, gestão, sustentabilidade e uso da plataforma Jornada do Produtor para fortalecer produtoras e empreendedoras de Imperatriz — MA.',
+    'Trilha formativa que integra empreendedorismo feminino, gestão, sustentabilidade e uso da plataforma digital para fortalecer produtoras e empreendedoras de Imperatriz — MA.',
   cargaHorariaTotal: '80 horas',
 };
 
@@ -41,7 +45,7 @@ export const MODULOS_PROGRAMATICOS: ModuloProgramatico[] = [
     subtitulo: 'Fundamentos e contexto do programa',
     cargaHoraria: '8h',
     descricao:
-      'Apresenta o projeto Inovação Imperatriz, o papel da mulher na economia local e os objetivos da formação em protagonismo feminino.',
+      'Apresenta o projeto TecnoProdutivo, o papel da mulher na economia local e os objetivos da formação em protagonismo feminino.',
     topicos: [
       'Protagonismo feminino na produção e na ciência',
       'Economia local e agricultura familiar em Imperatriz',

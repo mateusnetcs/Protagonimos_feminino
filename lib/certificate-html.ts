@@ -1,6 +1,10 @@
 import { buildCertificateVersoHtml, CERTIFICATE_VERSO_STYLES } from '@/lib/certificate-verso-html';
+import {
+  CERTIFICATE_PROJECT_SHORT,
+  CERTIFICATE_PROJECT_TITLE,
+} from '@/lib/certificate-project';
 
-/** HTML do certificado — tema Protagonismo Feminino / Inovação Imperatriz */
+/** HTML do certificado — tema TecnoProdutivo / Protagonismo Feminino */
 
 export type CertificateHtmlOptions = {
   uemasulLogoDataUri?: string;
@@ -201,6 +205,17 @@ export function buildCertificateHtml(
       letter-spacing: 0.28em;
       text-transform: uppercase;
       margin-bottom: 4px;
+    }
+    .project-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      line-height: 1.4;
+      max-width: 92%;
+      margin: 0 auto 6px;
+      color: #92400e;
     }
     .title-wrap {
       position: relative;
@@ -449,10 +464,10 @@ export function buildCertificateHtml(
         <div class="header">
           <div class="top-row">
             <div class="divider-line"></div>
-            <div class="badge">Jornada do Produtor</div>
+            <div class="badge">${escapeHtml(CERTIFICATE_PROJECT_SHORT)}</div>
             <div class="divider-line"></div>
           </div>
-          <div class="brand">Inovação Imperatriz · Protagonismo Feminino</div>
+          <div class="brand project-title">${escapeHtml(CERTIFICATE_PROJECT_TITLE)}</div>
           <div class="title-wrap">
             <h1 class="title">Certificado de Participação</h1>
             <div class="title-underline">
@@ -467,10 +482,10 @@ export function buildCertificateHtml(
         <div class="body">
           <p class="intro">
             Certificamos, para os devidos fins, que a participante abaixo identificada concluiu
-            com êxito as atividades formativas e capacitações do programa
-            <strong>Protagonismo Feminino</strong>, ofertado pela <strong>Uemasul</strong> e pelo
-            <strong>Curso de Administração</strong>, promovido no âmbito do projeto de inovação,
-            fortalecimento e protagonismo das produtoras rurais e empreendedoras de Imperatriz — MA.
+            com êxito as atividades formativas e capacitações do projeto
+            <strong>${escapeHtml(CERTIFICATE_PROJECT_TITLE)}</strong>, ofertado pela
+            <strong>Uemasul</strong> e pelo <strong>Curso de Administração</strong>, promovido
+            em Imperatriz — MA.
           </p>
           <div class="name-block">
             <div class="recipient-label">Participante</div>

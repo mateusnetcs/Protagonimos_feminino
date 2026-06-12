@@ -3,6 +3,7 @@ import {
   MODULOS_PROGRAMATICOS,
   type ModuloProgramatico,
 } from '@/lib/conteudo-programatico-data';
+import { CERTIFICATE_PROJECT_SHORT } from '@/lib/certificate-project';
 
 function escapeHtml(text: string): string {
   return text
@@ -58,7 +59,7 @@ export function buildCertificateVersoHtml(): string {
           ${renderColuna('Plataforma e encerramento · 9–11', col3)}
         </div>
 
-        <p class="verso-footer">Imperatriz — MA · Jornada do Produtor · Inovação Imperatriz</p>
+        <p class="verso-footer">Imperatriz — MA · ${escapeHtml(CERTIFICATE_PROJECT_SHORT)}</p>
       </div>
     </div>
   </div>`;
@@ -94,11 +95,13 @@ export const CERTIFICATE_VERSO_STYLES = `
       margin-bottom: 2px;
     }
     .verso-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 26px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 11px;
       font-weight: 700;
       color: #1a1510;
-      line-height: 1.05;
+      line-height: 1.35;
+      max-width: 98%;
+      margin: 0 auto;
     }
     .verso-brand {
       font-family: 'Cinzel', serif;

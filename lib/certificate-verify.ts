@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { query } from '@/lib/db';
+import { CERTIFICATE_OFFERED_BY, CERTIFICATE_PROJECT_TITLE } from '@/lib/certificate-project';
 
 const UEMASUL_LOGO_URL =
   'https://www.uemasul.edu.br/wp-content/uploads/2019/11/uemasul_brasao_colorido.png';
@@ -84,8 +85,8 @@ export async function verifyCertificate(
       name: displayName,
       email: user.email,
     },
-    program: 'Protagonismo Feminino',
-    offeredBy: 'Uemasul · Curso de Administração',
+    program: CERTIFICATE_PROJECT_TITLE,
+    offeredBy: CERTIFICATE_OFFERED_BY,
   };
 }
 
