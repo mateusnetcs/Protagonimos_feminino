@@ -2,12 +2,12 @@ import { existsSync, mkdtempSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
 import puppeteer, { type Browser } from 'puppeteer-core';
-
-type CertificateBrowser = Browser & { __profileDir?: string };
 import { buildCertificateHtml } from '@/lib/certificate-html';
 import { getCertificateLogos } from '@/lib/certificate-logo';
 import { createCertificateQrDataUri } from '@/lib/certificate-qr';
 import { getCertificateVerifyUrl } from '@/lib/certificate-verify';
+
+type CertificateBrowser = Browser & { __profileDir?: string };
 
 const CHROMIUM_ARGS = [
   '--no-sandbox',
@@ -38,17 +38,43 @@ export async function closeCertificateBrowser(browser: Browser): Promise<void> {
   }
 }
 
-function getExecutablePath(): string | undefined {
+function getBrowserCandidates(): string[] {
+  if (process.platform === 'win32') {
+    const localAppData = process.env.LOCALAPPDATA;
+    return [
+      process.env.PROGRAMFILES && path.join(process.env.PROGRAMFILES, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+      process.env['PROGRAMFILES(X86)'] &&
+        path.join(process.env['PROGRAMFILES(X86)'], 'Google', 'Chrome', 'Application', 'chrome.exe'),
+      localAppData && path.join(localAppData, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+      process.env.PROGRAMFILES && path.join(process.env.PROGRAMFILES, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+      process.env['PROGRAMFILES(X86)'] &&
+        path.join(process.env['PROGRAMFILES(X86)'], 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+      localAppData && path.join(localAppData, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    ].filter((candidate): candidate is string => Boolean(candidate));
+  }
+
+  if (process.platform === 'darwin') {
+    return [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    ];
+  }
+
+  return ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome'];
+}
+
+function getExecutablePath(): string {
   const fromEnv = process.env.PUPPETEER_EXECUTABLE_PATH?.trim();
-  if (fromEnv) return fromEnv;
+  if (fromEnv && existsSync(fromEnv)) return fromEnv;
 
-  if (process.platform !== 'linux') return undefined;
-
-  for (const candidate of ['/usr/bin/chromium', '/usr/bin/chromium-browser']) {
+  for (const candidate of getBrowserCandidates()) {
     if (existsSync(candidate)) return candidate;
   }
 
-  return '/usr/bin/chromium';
+  throw new Error(
+    'Navegador não encontrado. Instale Google Chrome ou Microsoft Edge, ou defina PUPPETEER_EXECUTABLE_PATH no .env.local.'
+  );
 }
 
 export async function launchCertificateBrowser(): Promise<Browser> {
@@ -81,15 +107,23 @@ export async function launchCertificateBrowser(): Promise<Browser> {
       /* ignore */
     }
     const message = err instanceof Error ? err.message : String(err);
-    throw new Error(
-      `Falha ao iniciar Chromium (${executablePath ?? 'sem caminho'}): ${message}`
-    );
+    throw new Error(`Falha ao iniciar Chromium (${executablePath}): ${message}`);
   }
 }
 
 async function waitForFonts(page: Awaited<ReturnType<Browser['newPage']>>): Promise<void> {
-    await Promise.race([
-    page.evaluate(() => document.fonts.ready),
+  await Promise.race([
+    page.evaluate(async () => {
+      const families = [
+        '22px "Brush Script MT"',
+        '22px "Brush Script Std"',
+        '22px "Segoe Script"',
+        '22px "Dancing Script"',
+        '56px "Allura"',
+      ];
+      await Promise.all(families.map((spec) => document.fonts.load(spec).catch(() => undefined)));
+      await document.fonts.ready;
+    }),
     new Promise<void>((resolve) => setTimeout(resolve, 12000)),
   ]);
 }

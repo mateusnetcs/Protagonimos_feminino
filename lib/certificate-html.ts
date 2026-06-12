@@ -30,7 +30,7 @@ export function buildCertificateHtml(
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Great+Vibes&family=Pinyon+Script&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Dancing+Script:wght@400;700&family=Great+Vibes&family=Pinyon+Script&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     @page { size: A4 landscape; margin: 0; }
@@ -271,17 +271,6 @@ export function buildCertificateHtml(
       flex-direction: column;
       align-items: center;
     }
-    .qr-url {
-      width: 22mm;
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 4.6px;
-      line-height: 1.3;
-      color: #64748b;
-      word-break: break-all;
-      text-align: center;
-      margin-bottom: 2px;
-      font-weight: 500;
-    }
     .qr-box img {
       width: 22mm;
       height: 22mm;
@@ -409,14 +398,15 @@ export function buildCertificateHtml(
     .sig-line-wrap::before { left: -2px; }
     .sig-line-wrap::after { right: -2px; }
     .sig-name {
-      font-family: 'Allura', 'Great Vibes', 'Pinyon Script', cursive;
-      font-size: 30px;
+      font-family: 'Brush Script MT', 'Brush Script Std', 'Segoe Script', 'Dancing Script', cursive;
+      font-size: 22px;
       font-weight: 400;
       font-style: normal;
       color: #1e293b;
       margin-bottom: 2px;
       line-height: 1.15;
-      padding: 0 2mm;
+      padding: 0 1mm;
+      letter-spacing: 0.02em;
     }
     .sig-role {
       font-family: 'Plus Jakarta Sans', sans-serif;
@@ -461,6 +451,20 @@ export function buildCertificateHtml(
       color: #94a3b8;
       letter-spacing: 0.12em;
       text-transform: uppercase;
+    }
+    .verify-url-corner {
+      position: absolute;
+      bottom: 3mm;
+      right: 7mm;
+      left: 7mm;
+      z-index: 4;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 8px;
+      line-height: 1.35;
+      color: #475569;
+      word-break: break-all;
+      text-align: center;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -535,6 +539,8 @@ export function buildCertificateHtml(
           <p class="footer-date">Imperatriz — MA, ${escapeHtml(dateStr)}</p>
           <div class="fline fline-r"></div>
         </div>
+
+        ${verifyUrl ? `<p class="verify-url-corner">${escapeHtml(verifyUrl)}</p>` : ''}
       </div>
     </div>
   </div>
@@ -549,7 +555,6 @@ function buildQrBlock(qrDataUri?: string, verifyUrl?: string): string {
 
   return `<div class="qr-wrap">
     <div class="qr-box">
-      <p class="qr-url">${escapeHtml(verifyUrl)}</p>
       <img src="${qrDataUri}" alt="QR Code verificação" />
       <p class="qr-label">Verificar<br/>autenticidade</p>
     </div>
