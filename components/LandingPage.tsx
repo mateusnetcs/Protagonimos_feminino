@@ -31,6 +31,9 @@ const Navbar = ({ onStart }: LandingPageProps) => (
         <a className="hover:text-primary transition-colors" href="#metodologia">
           Metodologia
         </a>
+        <Link className="hover:text-primary transition-colors" href="/conteudo-programatico">
+          Conteúdo Programático
+        </Link>
         <Link
           href="/login"
           className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-primary bg-primary/10 text-primary font-bold hover:bg-primary hover:text-white transition-all"

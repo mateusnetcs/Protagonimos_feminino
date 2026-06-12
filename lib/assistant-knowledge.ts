@@ -4,9 +4,10 @@ export function buildAssistantKnowledge(isAdmin: boolean): string {
     ? `
 ABAS SÓ PARA ADMIN:
 - responses (Respostas): questionários da pesquisa, criar questionário, ver respostas filtradas.
+- certificado (Certificados): gerar e baixar PDFs de participação nas capacitações do Protagonismo Feminino para usuários de nível geral (individual ou ZIP com todos).
 - usuarios (Usuários): cadastrar e gerenciar contas de produtoras.`
     : `
-O usuário NÃO é admin. Não sugira abas "responses" nem "usuarios".`;
+O usuário NÃO é admin. Não sugira abas "responses", "certificado" nem "usuarios".`;
 
   return `
 SISTEMA: Jornada do Produtor — Painel de Gestão (ERP para produtoras de Imperatriz).
@@ -49,7 +50,16 @@ ABAS E FUNÇÕES (use open_tab com o id exato):
    - Vendas PDV, catálogo, gráficos, DRE, por período.
    - Admin pode filtrar por usuário no topo do painel.
 
-8. configuracao — Configurações
+8. conteudo_programatico — Conteúdo Programático
+   - Trilha formativa do Protagonismo Feminino: módulos de formação e módulos da plataforma.
+   - Mesmo conteúdo impresso no verso do certificado PDF (sem carga horária).
+   - Visível para todos os usuários logados. Página pública em /conteudo-programatico.
+
+9. certificado — Certificados (só admin)
+   - Lista participantes de nível geral; baixar PDF individual ou ZIP com todos.
+   - Certificado de participação nas capacitações do Protagonismo Feminino.
+
+10. configuracao — Configurações
    - Chave PIX, conectar Mercado Pago OAuth, dados do PDV.
 
 AÇÕES ESPECIAIS (botões além de open_tab):

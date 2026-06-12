@@ -8,6 +8,8 @@ export const MANAGEMENT_TABS = [
   'post',
   'galeria',
   'relatorios',
+  'conteudo_programatico',
+  'certificado',
   'usuarios',
   'configuracao',
 ] as const;

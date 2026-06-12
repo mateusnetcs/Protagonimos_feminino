@@ -4,8 +4,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   ArrowLeft,
+  Award,
   BarChart3,
   Book,
+  BookOpen,
   ImagePlus,
   Images,
   LayoutDashboard,
@@ -31,6 +33,8 @@ import ImportNotaView from './management/ImportNotaView';
 import CatalogManagementTab from './management/CatalogManagementTab';
 import CatalogOrdersKanban from './management/CatalogOrdersKanban';
 import UsersTabView from './management/UsersTabView';
+import CertificatesView from './management/CertificatesView';
+import ConteudoProgramaticoView from './ConteudoProgramaticoView';
 import CommandBar, { type CommandAction } from './CommandBar';
 import AssistantChat from './AssistantChat';
 import type { AssistantAction } from '@/lib/assistant-types';
@@ -49,6 +53,8 @@ const VALID_TABS = [
   'post',
   'galeria',
   'relatorios',
+  'conteudo_programatico',
+  'certificado',
   'usuarios',
   'configuracao',
 ] as const;
@@ -58,7 +64,9 @@ function parseTabFromSearch(search: string, isAdminUser: boolean): TabId | null 
   const tab = new URLSearchParams(search).get('tab');
   if (!tab || !VALID_TABS.includes(tab as TabId)) return null;
   const t = tab as TabId;
-  if (t === 'responses' && !isAdminUser) return 'catalogo';
+  if ((t === 'responses' || t === 'usuarios' || t === 'certificado') && !isAdminUser) {
+    return 'catalogo';
+  }
   return t;
 }
 
@@ -81,7 +89,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
 
   const goToTab = useCallback(
     (tab: TabId) => {
-      if (tab === 'responses' && !isAdmin) return;
+      if ((tab === 'responses' || tab === 'usuarios' || tab === 'certificado') && !isAdmin) return;
       const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
       params.set('tab', tab);
       setActiveTab(tab);
@@ -111,7 +119,9 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
   }, []);
 
   useEffect(() => {
-    if (!isAdmin && activeTab === 'responses') setActiveTab('catalogo');
+    if (!isAdmin && (activeTab === 'responses' || activeTab === 'usuarios' || activeTab === 'certificado')) {
+      setActiveTab('catalogo');
+    }
   }, [isAdmin, activeTab]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [showImportNota, setShowImportNota] = useState(false);
@@ -146,7 +156,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
       case 'open_tab': {
         const tab = result.params?.tab as TabId;
         if (tab && VALID_TABS.includes(tab)) {
-          if (tab === 'responses' && !isAdmin) return;
+          if ((tab === 'responses' || tab === 'usuarios' || tab === 'certificado') && !isAdmin) return;
           goToTab(tab);
         }
         break;
@@ -176,7 +186,7 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
         case 'open_tab': {
           const tab = action.tab as TabId;
           if (MANAGEMENT_TABS.includes(tab as ManagementTabId)) {
-            if (tab === 'responses' && !isAdmin) return;
+            if ((tab === 'responses' || tab === 'usuarios' || tab === 'certificado') && !isAdmin) return;
             setShowProductForm(false);
             setShowImportNota(false);
             goToTab(tab);
@@ -451,6 +461,30 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             <BarChart3 size={20} />
             Relatórios
           </button>
+          <button
+            onClick={() => goToTab('conteudo_programatico')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+              activeTab === 'conteudo_programatico'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <BookOpen size={20} />
+            Conteúdo
+          </button>
+          {isAdmin && (
+            <button
+              onClick={() => goToTab('certificado')}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+                activeTab === 'certificado'
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  : 'text-slate-500 hover:bg-slate-50'
+              }`}
+            >
+              <Award size={20} />
+              Certificado
+            </button>
+          )}
           {isAdmin && (
             <button
               onClick={() => goToTab('usuarios')}
@@ -509,8 +543,12 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
           <GalleryView />
         ) : activeTab === 'relatorios' ? (
           <ReportsView selectedUserId={isAdmin && selectedUserId ? selectedUserId : undefined} />
+        ) : activeTab === 'conteudo_programatico' ? (
+          <ConteudoProgramaticoView compact />
         ) : activeTab === 'usuarios' ? (
           <UsersTabView />
+        ) : activeTab === 'certificado' && isAdmin ? (
+          <CertificatesView />
         ) : activeTab === 'produtos' ? (
           showImportNota ? (
             <ImportNotaView

@@ -3,6 +3,7 @@ import type {NextConfig} from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   staticPageGenerationTimeout: 120,
+  serverExternalPackages: ['puppeteer', 'archiver', 'qrcode'],
   experimental: {
     // Evita bug "React Client Manifest" / global-error no dev (Next 15)
     devtoolSegmentExplorer: false,
@@ -51,6 +52,17 @@ const nextConfig: NextConfig = {
       './node_modules/sql-escaper/**/*',
       './node_modules/bcryptjs/**/*',
     ],
+    '/api/admin/certificates': ['./node_modules/puppeteer/**/*'],
+    '/api/admin/certificates/[userId]': [
+      './node_modules/puppeteer/**/*',
+      './node_modules/qrcode/**/*',
+    ],
+    '/api/admin/certificates/bulk': [
+      './node_modules/puppeteer/**/*',
+      './node_modules/archiver/**/*',
+      './node_modules/qrcode/**/*',
+    ],
+    '/api/certificado/verificar': [],
   },
   transpilePackages: ['motion'],
   webpack: (config, {dev}) => {
