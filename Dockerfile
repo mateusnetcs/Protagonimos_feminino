@@ -15,7 +15,9 @@ RUN npm ci
 COPY . .
 RUN chmod +x scripts/prepare-cert-runtime-deps.sh
 RUN npm run build
-RUN ./scripts/prepare-cert-runtime-deps.sh /runtime-extra/node_modules /app
+RUN ./scripts/prepare-cert-runtime-deps.sh /runtime-extra/node_modules /app \
+    && mkdir -p /app/.next/standalone/node_modules \
+    && cp -a /runtime-extra/node_modules/. /app/.next/standalone/node_modules/
 
 # Production
 FROM node:22-slim AS runner
@@ -61,7 +63,6 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /runtime-extra/node_modules/ ./node_modules/
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/database ./database
