@@ -9,6 +9,7 @@ export const MANAGEMENT_TABS = [
   'galeria',
   'relatorios',
   'conteudo_programatico',
+  'sapiens',
   'certificado',
   'usuarios',
   'configuracao',

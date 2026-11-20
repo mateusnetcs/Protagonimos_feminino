@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+backups/
+
+# Sapiens: arquivos locais
+tsconfig.tsbuildinfo
+.venv-sapiens/
+sapies\ /

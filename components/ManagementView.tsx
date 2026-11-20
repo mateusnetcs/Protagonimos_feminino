@@ -8,6 +8,7 @@ import {
   BarChart3,
   Book,
   BookOpen,
+  GraduationCap,
   ImagePlus,
   Images,
   LayoutDashboard,
@@ -35,6 +36,7 @@ import CatalogOrdersKanban from './management/CatalogOrdersKanban';
 import UsersTabView from './management/UsersTabView';
 import CertificatesView from './management/CertificatesView';
 import ConteudoProgramaticoView from './ConteudoProgramaticoView';
+import SapiensView from './sapiens/SapiensView';
 import CommandBar, { type CommandAction } from './CommandBar';
 import AssistantChat from './AssistantChat';
 import type { AssistantAction } from '@/lib/assistant-types';
@@ -54,6 +56,7 @@ const VALID_TABS = [
   'galeria',
   'relatorios',
   'conteudo_programatico',
+  'sapiens',
   'certificado',
   'usuarios',
   'configuracao',
@@ -472,6 +475,17 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
             <BookOpen size={20} />
             Conteúdo
           </button>
+          <button
+            onClick={() => goToTab('sapiens')}
+            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold transition-all shrink-0 ${
+              activeTab === 'sapiens'
+                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                : 'text-slate-500 hover:bg-slate-50'
+            }`}
+          >
+            <GraduationCap size={20} />
+            Sapiens
+          </button>
           {isAdmin && (
             <button
               onClick={() => goToTab('certificado')}
@@ -545,6 +559,8 @@ export default function ManagementView({ onBack }: ManagementViewProps) {
           <ReportsView selectedUserId={isAdmin && selectedUserId ? selectedUserId : undefined} />
         ) : activeTab === 'conteudo_programatico' ? (
           <ConteudoProgramaticoView compact />
+        ) : activeTab === 'sapiens' ? (
+          <SapiensView />
         ) : activeTab === 'usuarios' ? (
           <UsersTabView />
         ) : activeTab === 'certificado' && isAdmin ? (
