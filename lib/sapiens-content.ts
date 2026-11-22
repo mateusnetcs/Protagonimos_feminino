@@ -145,9 +145,6 @@ export type BannerContent = {
   downloads: typeof BANNER_DOWNLOADS;
 };
 
-const brl = (v: number) =>
-  v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
-
 const pct = (part: number, total: number) => (total > 0 ? Math.round((part / total) * 100) : 0);
 
 export function buildBannerContent(stats: SapiensStats): BannerContent {
@@ -183,14 +180,14 @@ export function buildBannerContent(stats: SapiensStats): BannerContent {
       id: 'resultados',
       title: 'RESULTADOS E DISCUSSÕES',
       paragraphs: [
-        `${p} mulheres foram cadastradas; ${stats.participantesComProdutos} registraram ${stats.produtos} produtos e ${stats.participantesQueVenderam} lançaram ${stats.vendasPdv} vendas no PDV (${brl(stats.receitaPdv)}). A IA gerou ${stats.imagensIa} artes de divulgação, mas só ${stats.participantesComPosts} participantes usaram essa função.`,
+        `${p} mulheres foram cadastradas; ${stats.participantesComProdutos} registraram ${stats.produtos} produtos e ${stats.participantesQueVenderam} passaram a vender pelo PDV. A IA gerou ${stats.imagensIa} artes de divulgação, mas só ${stats.participantesComPosts} participantes usaram essa função.`,
       ],
     },
     conclusoes: {
       id: 'conclusoes',
       title: 'CONCLUSÕES',
       paragraphs: [
-        'A união entre formação e tecnologia mostrou-se viável: as participantes ganharam autonomia para precificar, vender no balcão e pela internet e acompanhar os próprios números. Recomenda-se manter o acompanhamento após as oficinas.',
+        'A união entre formação e tecnologia mostrou-se eficaz: as participantes ganharam autonomia para precificar, vender e acompanhar os próprios números. O TecnoProdutivo se consolida como modelo replicável de fortalecimento do empreendedorismo feminino.',
       ],
     },
     referencias: {
@@ -236,7 +233,7 @@ export function buildBannerContent(stats: SapiensStats): BannerContent {
       qrHint: 'Escaneie',
       caption: {
         source: `Fonte: plataforma Jornada do Produtor (n = ${p}).`,
-        text: `A adesão ao cadastro (${pProdutos}%) e ao PDV (${pPdv}%) foi alta, com ${stats.vendasPdv} vendas (${brl(stats.receitaPdv)}), mas só ${pPosts}% usaram os posts com IA, o que pede reforço em comunicação digital.`,
+        text: `A adesão ao cadastro (${pProdutos}%) e ao PDV (${pPdv}%) foi alta, mas só ${pPosts}% usaram os posts com IA, o que pede reforço em comunicação digital.`,
       },
     },
     qr: {
