@@ -169,7 +169,7 @@ export function buildBannerContent(stats: SapiensStats): BannerContent {
       id: 'introducao',
       title: 'INTRODUÇÃO',
       paragraphs: [
-        'Mulheres da agricultura familiar, do artesanato e de pequenos negócios de Imperatriz-MA enfrentam baixa digitalização. O projeto TecnoProdutivo (UEMASUL) une formação e tecnologia para fortalecer o protagonismo feminino. Propor melhorias em processos produtivos com base em tecnologia e inovação acessível. Foram capacitadas 60 mulheres empreendedoras de Imperatriz.',
+        `Mulheres da agricultura familiar, do artesanato e de pequenos negócios de Imperatriz-MA enfrentam baixa digitalização. O projeto TecnoProdutivo (UEMASUL) une formação e tecnologia para fortalecer o protagonismo feminino. Propor melhorias em processos produtivos com base em tecnologia e inovação acessível. Foram capacitadas ${p} mulheres empreendedoras de Imperatriz.`,
       ],
     },
     metodos: {
