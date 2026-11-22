@@ -173,7 +173,7 @@ export function buildBannerContent(stats: SapiensStats): BannerContent {
       id: 'metodos',
       title: 'MATERIAIS E MÉTODOS',
       paragraphs: [
-        'Pesquisa-ação em cinco etapas (diagnóstico, oficinas, laboratórios, implantação e mostra), com trilha de 80 h e a plataforma web Jornada do Produtor: produtos e custos, PDV com PIX, catálogo on-line, posts com IA e relatórios.',
+        'Pesquisa-ação em cinco etapas (diagnóstico, oficinas, laboratórios, implantação e mostra), com trilha de 32 h e a plataforma web Jornada do Produtor: produtos e custos, PDV com PIX, catálogo on-line, posts com IA e relatórios.',
       ],
     },
     resultados: {

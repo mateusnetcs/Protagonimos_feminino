@@ -69,7 +69,7 @@ const FEATURES = [
   {
     icon: Book,
     title: 'Trilha formativa e certificados',
-    text: 'Conteúdo programático de 80 horas e certificados de participação com verificação de autenticidade por QR Code.',
+    text: 'Trilha formativa de 32 horas e certificados de participação com verificação de autenticidade por QR Code.',
   },
 ];
 
