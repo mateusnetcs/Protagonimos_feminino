@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {
   BarChart3,
   Book,
+  Camera,
   ClipboardList,
   ImagePlus,
   Images,
@@ -18,6 +19,8 @@ import { buildBannerContent, SAPIENS_AUTHORS } from '@/lib/sapiens-content';
 import { CERTIFICATE_OFFERED_BY } from '@/lib/certificate-project';
 import { AdoptionChart } from '@/components/sapiens/SapiensCharts';
 import SapiensGallery from '@/components/sapiens/SapiensGallery';
+import SapiensPhotos from '@/components/sapiens/SapiensPhotos';
+import { SAPIENS_PHOTO_GROUPS } from '@/lib/sapiens-photos';
 
 export const dynamic = 'force-dynamic';
 
@@ -139,6 +142,12 @@ export default async function SapiensReportPage() {
               Ver resultados
             </a>
             <a
+              href="#fotos"
+              className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold ring-1 ring-white/30 hover:bg-white/20"
+            >
+              Ver fotos
+            </a>
+            <a
               href="#funcionalidades"
               className="rounded-full bg-white/10 px-5 py-2.5 text-sm font-bold ring-1 ring-white/30 hover:bg-white/20"
             >
@@ -167,6 +176,18 @@ export default async function SapiensReportPage() {
               </p>
             ))}
           </div>
+        </section>
+
+        {/* Fotos do projeto */}
+        <section id="fotos" className="scroll-mt-6">
+          <div className="flex items-center gap-2">
+            <Camera className="text-[#0435da]" size={22} />
+            <h2 className="text-xl sm:text-2xl font-black text-[#021e5d]">O projeto em fotos</h2>
+          </div>
+          <p className="mt-1 mb-6 text-sm text-slate-500">
+            Oficinas, ação na feira e encerramento com entrega de certificados. Toque em uma foto para ampliar.
+          </p>
+          <SapiensPhotos groups={SAPIENS_PHOTO_GROUPS} />
         </section>
 
         {/* Indicadores */}
