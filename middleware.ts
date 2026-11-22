@@ -5,7 +5,9 @@ function isLoopbackHost(host: string) {
   return (
     host.includes('localhost') ||
     host.startsWith('127.0.0.1') ||
-    host.startsWith('[::1]')
+    host.startsWith('[::1]') ||
+    // Requisições internas do servidor standalone (ex.: otimizador de imagens /_next/image)
+    host.startsWith('0.0.0.0')
   );
 }
 
@@ -41,9 +43,11 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Exclui API (NextAuth, health), assets e favicon — menos risco de redirect
-     * indevido em chamadas internas e probes.
+     * Exclui API (NextAuth, health), assets, favicon e QUALQUER arquivo estático
+     * (caminho com extensão: .jpg, .png, .pptx, .ttf...) — menos risco de redirect
+     * indevido em chamadas internas e probes. Sem isso, o otimizador de imagens
+     * recebia um 301 ao buscar /public e as fotos apareciam quebradas.
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|uploads).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|uploads|.*\\.[a-zA-Z0-9]+$).*)',
   ],
 };
