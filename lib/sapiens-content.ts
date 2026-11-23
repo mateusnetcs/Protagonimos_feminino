@@ -36,13 +36,26 @@ export const SAPIENS_TITLE = CERTIFICATE_PROJECT_TITLE;
 
 export type SapiensAuthor = { name: string; email: string; role: 'voluntaria' | 'orientadora' };
 
-/** Autoras do banner: voluntárias do projeto e a orientadora. */
-export const SAPIENS_AUTHORS: SapiensAuthor[] = [
-  { name: 'Mávia Guerra Grandi', email: 'mavia.grandi@uemasul.edu.br', role: 'voluntaria' },
+const VOLUNTARIAS: SapiensAuthor[] = [
   { name: 'Brenda Sousa Oliveira', email: 'brenda.s.oliveira@uemasul.edu.br', role: 'voluntaria' },
-  { name: 'Roxanne Kelly Lima de Sousa', email: 'roxanne.sousa@uemasul.edu.br', role: 'voluntaria' },
   { name: 'Mateus Oliveira da Conceição', email: 'mateus.conceicao@uemasul.edu.br', role: 'voluntaria' },
-  { name: 'Iracema Rocha da Silva', email: 'iracemarocha@uemasul.edu.br', role: 'orientadora' },
+  { name: 'Mávia Guerra Grandi', email: 'mavia.grandi@uemasul.edu.br', role: 'voluntaria' },
+  { name: 'Roxanne Kelly Lima de Sousa', email: 'roxanne.sousa@uemasul.edu.br', role: 'voluntaria' },
+];
+
+const ORIENTADORA: SapiensAuthor = {
+  name: 'Iracema Rocha da Silva',
+  email: 'iracemarocha@uemasul.edu.br',
+  role: 'orientadora',
+};
+
+/**
+ * Autoras do banner: voluntárias em ordem alfabética (ignorando acentos) e,
+ * por último, a orientadora — a ordem é garantida aqui mesmo se a lista acima mudar.
+ */
+export const SAPIENS_AUTHORS: SapiensAuthor[] = [
+  ...[...VOLUNTARIAS].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })),
+  ORIENTADORA,
 ];
 
 /** Linha do autor no banner: "Nome (e-mail)"; a orientadora vem identificada. */
